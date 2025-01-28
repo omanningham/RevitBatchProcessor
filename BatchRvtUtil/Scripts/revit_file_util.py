@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Revit Batch Processor
 #
 # Copyright (c) 2020  Dan Rumery, BVN
@@ -24,6 +24,10 @@ import System
 from System import Environment
 from System.IO import Path
 import path_util
+
+import script_util
+from script_util import Output
+
 
 clr.AddReference("RevitAPI")
 from Autodesk.Revit.DB import *

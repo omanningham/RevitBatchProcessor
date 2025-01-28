@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Revit Batch Processor
 #
@@ -54,7 +55,9 @@ def FilterControlsByText(controls, controlText):
     targetControls = list(
             control
             for control in controls
-            if TextWithoutAmpersands(control.WindowText).Trim().ToLower() == controlText.Trim().ToLower()
+                for controltxt in controlText
+                    if TextWithoutAmpersands(control.WindowText).Trim().ToLower() == str(controltxt).Trim().ToLower()
+
         )
     return targetControls
 

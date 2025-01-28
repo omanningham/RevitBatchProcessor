@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Revit Batch Processor
 #
@@ -65,12 +66,16 @@ NO_GUARDAR_PROYECTO_BUTTON_TEXT = "No guardar el proyecto"
 OK_BUTTON_TEXT = "OK"
 RHINO_SELECTION_BUTTON_TEXT = "Rhino 7" #Change this to target a different version of Rhino by default
 STATIC_CONTROL_CLASS_NAME = "Static"
-YES_BUTTON_TEXT = "Yes"
 
 RELINQUISH_ALL_ELEMENTS_AND_WORKSETS_TEXT = "Relinquish all elements and worksets"
 RELINQUISH_ELEMENTS_AND_WORKSETS_TEXT = "Relinquish elements and worksets"
 
-
+CLOSE_BUTTON_TEXT = ["Close","Fermer"]
+OK_BUTTON_TEXT = ["OK","Ok"]
+NO_BUTTON_TEXT = ["No","Non"]
+YES_BUTTON_TEXT = ["Yes","Oui"]
+ALWAYS_LOAD_BUTTON_TEXT = ["Always Load"]
+CANCEL_LINK_BUTTON_TEXT = ["Cancel Link"]
 HAVE_REPORTED_BATCH_RVT_ERROR_WINDOW_DETECTION = [False]
 OPENING_WORKSETS_TITLES = [
         "Worksets",
