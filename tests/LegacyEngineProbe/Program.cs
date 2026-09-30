@@ -26,7 +26,7 @@ class Program
             engine.Execute("class Empty(object):\n    pass\nEmpty()\nimport encodings, codecs, json, platform, collections, logging, traceback\n", scope);
             util.GetMethod("AddSearchPaths").Invoke(null, new object[] { engine, new[] { Path.GetFullPath(args[1]), Path.GetFullPath(args[2]), folder } });
             Assembly.LoadFrom(Path.Combine(folder, "BatchRvtUtil.dll"));
-            engine.Execute("import batch_rvt_util, script_util, json_util, script_environment\nimport unittest, runtime_preflight_tests, script_compatibility_tests\nsuite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(m) for m in [runtime_preflight_tests, script_compatibility_tests]])\nresult = unittest.TextTestRunner().run(suite)\nassert result.wasSuccessful()\n", scope);
+            engine.Execute("import batch_rvt_util, script_util, json_util, script_environment\nimport unittest, runtime_preflight_tests, script_compatibility_tests, file_list_regression_tests\nsuite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(m) for m in [runtime_preflight_tests, script_compatibility_tests, file_list_regression_tests]])\nresult = unittest.TextTestRunner().run(suite)\nassert result.wasSuccessful()\n", scope);
             dynamic kind = Enum.Parse(Assembly.Load("Microsoft.Scripting").GetType("Microsoft.Scripting.SourceCodeKind", true), "File");
             foreach (var path in Directory.GetFiles(args[1], "*.py"))
                 engine.CreateScriptSourceFromString(File.ReadAllText(path), path, kind).Compile();

@@ -50,3 +50,27 @@ Les changements préexistants README/lanceurs et les documents locaux sont prés
 
 Le package reste un **candidat pilote**, pas une release validée pour production.
 Consulter [le runbook](net10-pilot.md) pour déploiement explicite et retour arrière.
+
+## Corrections après revue du commit 91935f7
+
+La première qualification ci-dessus précédait la revue Codex/Astra. Celle-ci a
+reproduit la perte des données associées et l’ignorance d’une liste réécrite : la
+lecture fichier mettait les chemins seuls dans `RevitFileList`, réservé désormais
+à l’entrée en mémoire. Le fichier est relu avec tous ses enregistrements.
+
+Cinq tests supplémentaires vérifient les colonnes CSV/texte, les réécritures, la
+priorité d’une liste en mémoire, le lecteur Excel simulé et le refus d’un lot devenu
+mixte avant lancement. La suite comporte désormais quinze tests par moteur.
+Les tests de monitor chargent ses fonctions sans exécuter son `Main()` automatique ;
+inspection de modèles et lancement restent remplacés par des fonctions de test.
+
+Le contrôle 2.7.12 écrit son exception sur stderr. Sous PowerShell 5.1, la
+redirection native avec `ErrorActionPreference=Stop` interrompait le build avant
+son contrôle de sortie. Un processus distinct capture maintenant les deux flux
+en UTF-8, sans modifier la préférence du shell. Les tests vérifient l’erreur attendue,
+la conservation des chemins accentués et le rejet d’un candidat qui réussit.
+La fonction de lancement des autres commandes accepte également stderr avec un
+code zéro (progression `unittest`), tout en rejetant un code non nul. Ces deux cas
+sont testés sous PowerShell 5.1 et 7 sans changer la préférence du shell appelant.
+Les logs du nouveau pilote constituent les résultats de cette nouvelle exécution ;
+les archives de qualification antérieures restent conservées.

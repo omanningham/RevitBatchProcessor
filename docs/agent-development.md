@@ -166,6 +166,12 @@ Les tâches modernes exigent une qualification utilisateur Python 3 ; le pré/po
 reste Python 2. Refus des lots mixtes avant prétraitement et contrôle du
 `RevitNET.runtimeconfig.json` de chaque Revit moderne sélectionné.
 Les tests hors Revit ne qualifient ni les API Revit ni les communications complètes.
+Le contrôle négatif capture stderr via `InvokeEngineControl.ps1` pour fonctionner
+sous PowerShell 5.1 et 7. Les tests de listes utilisent de vrais fichiers temporaires
+CSV/texte et un lecteur Excel simulé, sans ouvrir de modèle ni lancer `Main()`.
+`BatchRvtConfig.RevitFileList` désigne uniquement l’entrée explicitement fournie en
+mémoire : ne pas y mettre en cache les chemins d’une liste fichier, car cela perd
+les colonnes associées et empêche la relecture après prétraitement.
 
 ## Références internes
 

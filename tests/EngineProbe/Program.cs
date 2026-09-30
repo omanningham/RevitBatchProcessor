@@ -3,6 +3,8 @@ using System.Runtime.Loader;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 
+Console.OutputEncoding = new System.Text.UTF8Encoding(false);
+
 // No IronPython reference: the control and candidate run in separate processes
 // against the exact DLL directories supplied by the caller.
 if (args.Length < 1) throw new ArgumentException("Usage: EngineProbe <engine-folder> [scripts-folder] [host-folder]");
@@ -57,7 +59,7 @@ try {
             Console.WriteLine("PASS: actual shared util, script imports and JSON");
             var testsFolder = Path.GetFullPath(Path.Combine(args[1], "..", "..", "tests"));
             util.GetMethod("AddSearchPaths")!.Invoke(null, new object[] { hostedEngine, new[] { testsFolder } });
-            hosted.Execute("import unittest, runtime_preflight_tests, script_compatibility_tests\nsuite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(m) for m in [runtime_preflight_tests, script_compatibility_tests]])\nresult = unittest.TextTestRunner().run(suite)\nassert result.wasSuccessful()\n", (dynamic)hostedScope);
+            hosted.Execute("import unittest, runtime_preflight_tests, script_compatibility_tests, file_list_regression_tests\nsuite = unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromModule(m) for m in [runtime_preflight_tests, script_compatibility_tests, file_list_regression_tests]])\nresult = unittest.TextTestRunner().run(suite)\nassert result.wasSuccessful()\n", (dynamic)hostedScope);
         }
         try {
             setup.Invoke(null, new[] { hostedScope, Path.Combine(hostFolder, "missing-stdlib") });

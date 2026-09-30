@@ -17,8 +17,18 @@ if (!$MsBuild) {
 }
 if (!$MsBuild -or !(Test-Path -LiteralPath $MsBuild)) { throw 'Visual Studio MSBuild is required for the historical projects.' }
 function Run([string]$exe, [string[]]$arguments, [string]$log) {
-    & $exe @arguments *> (Join-Path $output $log)
-    if ($LASTEXITCODE) { throw "$exe failed; see $log" }
+    $command = Get-Command $exe -CommandType Application -ErrorAction Stop
+    $logPath = Join-Path $output $log
+    [IO.File]::WriteAllText($logPath, '') # Fail on log I/O before changing the preference.
+    $previousPreference = $ErrorActionPreference
+    try {
+        # WinPS 5.1 treats redirected native stderr (including unittest progress)
+        # as error records. The native exit code determines success here.
+        $ErrorActionPreference = 'Continue'
+        & $command.Source @arguments *> $logPath
+        $exitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $previousPreference }
+    if ($exitCode) { throw "$exe failed; see $log" }
 }
 function InstallationInventory {
     foreach ($root in @((Join-Path $env:APPDATA 'Autodesk/Revit/Addins'), (Join-Path $env:ProgramData 'Autodesk/Revit/Addins'), (Join-Path $env:LOCALAPPDATA 'RevitBatchProcessor'))) {
@@ -73,8 +83,15 @@ foreach ($probe in @('EngineProbe', 'LegacyEngineProbe')) {
     Run 'dotnet' @('build', $project, '--no-restore', '-o', "$output/$probe") "build-$probe.log"
 }
 if ($ControlEngineFolder) {
-    & "$output/EngineProbe/EngineProbe.exe" $ControlEngineFolder *> "$output/test-control.log"
-    if (!$LASTEXITCODE -or !(Select-String -LiteralPath "$output/test-control.log" -Pattern 'ImplementCTDOverride' -Quiet)) { throw 'The Python 2 control did not reproduce the expected error.' }
+    $controlExitCode = & "$PSScriptRoot/InvokeEngineControl.ps1" -ProbePath "$output/EngineProbe/EngineProbe.exe" -EngineFolder $ControlEngineFolder -LogPath "$output/test-control.log"
+    if (!$controlExitCode -or !(Select-String -LiteralPath "$output/test-control.log" -Pattern 'ImplementCTDOverride' -Quiet)) { throw 'The Python 2 control did not reproduce the expected error.' }
+}
+foreach ($shellName in @('powershell.exe', 'pwsh.exe')) {
+    $shell = Get-Command $shellName -ErrorAction SilentlyContinue
+    if ($shell) {
+        $label = $shell.Name.Replace('.exe', '')
+        Run $shell.Source @('-NoProfile', '-File', "$source/tests/engine_control_tests.ps1", '-ProbePath', "$output/EngineProbe/EngineProbe.exe", '-ControlEngineFolder', $ControlEngineFolder, '-CandidateEngineFolder', "$source/BatchRvtAddin2025/bin/x64/Release", '-OutputFolder', "$output/control-$label") "test-control-$label.log"
+    }
 }
 foreach ($year in 2025..2027) {
     $addin = "$source/BatchRvtAddin$year/bin/x64/Release"

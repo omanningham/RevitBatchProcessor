@@ -119,11 +119,8 @@ class BatchRvtConfig:
                     output("ERROR: Could not read from the Excel Revit File list. An Excel installation was not detected!")
                 else:
                     revitFileListData = revit_file_list.FromFile(self.RevitFileListFilePath)
-                    revitFileList = (
-                            [revitFilePathData.RevitFilePath for revitFilePathData in revitFileListData]
-                            if revitFileListData is not None else None
-                        )
-                    self.RevitFileList = revitFileList
+                    # RevitFileList is explicit object input, not a file cache.
+                    # Re-read file-backed lists after preprocessing, with all columns.
                     self.RevitFileListData = revitFileListData
 
             if revitFileListData is None:

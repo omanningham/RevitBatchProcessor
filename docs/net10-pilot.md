@@ -9,7 +9,7 @@ elle est contrôlée de nouveau après celui-ci.
 
 ## Construction et validation sans installation
 
-Prérequis : Windows, SDK .NET 10, Visual Studio MSBuild, accès NuGet.
+Prérequis : Windows, PowerShell 5.1 ou 7, SDK .NET 10, Visual Studio MSBuild, accès NuGet.
 Depuis la racine :
 
 ```powershell
@@ -25,6 +25,15 @@ intermédiaires. Les empreintes des installations sont comparées avant/après.
 La sortie GUI conserve son moteur historique ; chaque sortie moderne doit avoir
 IronPython 3.4.2.0 et DLR 1.3.5.0. Les hôtes/utilitaires proviennent du même build.
 
+Le témoin négatif est lancé via `scripts/InvokeEngineControl.ps1`, qui capture
+stdout/stderr en UTF-8 et retourne explicitement le code de sortie. Son erreur
+attendue ne doit pas interrompre PowerShell 5.1 avant la vérification. Le build
+exécute aussi les tests de ce contrôle sous les shells 5.1 et 7 disponibles.
+Pour les autres commandes natives, stderr est conservé dans les logs et le code
+de sortie détermine l’échec ; la préférence d’erreur du shell est restaurée.
+Les listes issues d’un fichier sont relues avec toutes leurs colonnes après
+prétraitement ; une liste explicitement fournie en mémoire reste prioritaire.
+
 `DeployAddinOnBuild` vaut `false` par défaut pour 2025–2027. Les builds historiques
 du script utilisent `/p:PostBuildEvent=`. Aucune commande de déploiement ni
 installation n’est exécutée. Le workflow MSI historique vérifie désormais 2027,
@@ -39,6 +48,8 @@ les logs, le commit de base, le patch local et `SHA256.json`. Les archives
 Les probes testent le moteur, les classes, une interface .NET, TypeDescriptor,
 les imports StdLib, les assemblies RBP historiques, la syntaxe de tous les scripts
 actifs, le routage pur, les flux, les accents et les exceptions d’une tâche.
+La suite inclut aussi les régressions de listes CSV/texte, le lecteur Excel simulé,
+la priorité de l’entrée en mémoire et le refus d’un lot devenu mixte après prétraitement.
 Ils ne testent pas l’orchestration complète, les pipes, les dialogues ni les API Revit.
 Une compilation ne qualifie aucune version de Revit.
 
