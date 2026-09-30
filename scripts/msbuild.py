@@ -18,7 +18,8 @@ IO_TIME_OUT_IN_MS = 5 * 60 * 10000 # 5 minutes
 #VC_FOLDER_PATH = r"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC"
 VC_FOLDER_PATH_COMMUNITY_2017 = r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build"
 VC_FOLDER_PATH_COMMUNITY_2019 = r"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build"
-VC_FOLDER_PATHS = [VC_FOLDER_PATH_COMMUNITY_2017, VC_FOLDER_PATH_COMMUNITY_2019]
+VC_FOLDER_PATH_COMMUNITY_2022 = r"C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build"
+VC_FOLDER_PATHS = [VC_FOLDER_PATH_COMMUNITY_2017, VC_FOLDER_PATH_COMMUNITY_2019,VC_FOLDER_PATH_COMMUNITY_2022]
 VC_VARS_ALL_FILENAME = "vcvarsall.bat"
 MSBUILD_FILENAME = "msbuild.exe"
 
