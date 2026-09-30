@@ -1,6 +1,6 @@
 # Sample Scripts
 
-The RevitBatchProcessor takes three types of scripts: a task script and (optionally) a pre-processing and post-processing script. These scripts are written in Iron-Python (a .NET variant of Python). With a small amount of additional code the task script can also execute your Dynamo script!
+The RevitBatchProcessor takes a task script (Python or Dynamo) and, optionally, a Python pre-processing script and a Python post-processing script. These scripts are written in IronPython (a .NET variant of Python). A Dynamo (.dyn) workspace can also be used directly as the task script.
 
 ## Task scripts
 
@@ -35,55 +35,13 @@ Output()
 Output("Hello Revit world!")
 ```
 
-## Dynamo Scripts
+## Dynamo scripts
 
-Task script to execute a Dynamo script:
+Select the Dynamo (.dyn) file directly as the task script in the UI (or with `--task_script` on the command line). No Python wrapper is needed: RBP opens each Revit file in the UI, runs the workspace and closes the file.
 
-A Dynamo (.dyn) file can also be given directly as the task script, without any Python. Use a Python task script like this one only when you need to run extra code around the Dynamo script.
-
-```python
-'''Run a Dynamo workspace script on each Revit file.'''
-
-import clr
-import System
-
-clr.AddReference("RevitAPI")
-clr.AddReference("RevitAPIUI")
-from Autodesk.Revit.DB import *
-
-import revit_script_util
-from revit_script_util import Output
-
-import revit_dynamo_util
-
-# Change this variable to the path of your Dynamo workspace file.
-# (Note that the Dynamo script must have been saved in 'Automatic' mode.)
-DYNAMO_SCRIPT_FILE_PATH = r"C:\DynamoScripts\MyDynamoWorkspace.dyn"
-
-sessionId = revit_script_util.GetSessionId()
-uiapp = revit_script_util.GetUIApplication()
-
-# NOTE: these only make sense for batch Revit file processing mode.
-doc = revit_script_util.GetScriptDocument()
-revitFilePath = revit_script_util.GetRevitFilePath()
-
-# Dynamo requires an active UIDocument, not just a loaded Document!
-# For a Python task script RBP only opens the document in memory, so we use
-# UIApplication.OpenAndActivateDocument() here. (Not needed if the document is
-# already the active one.)
-Output()
-Output("Activating the document for Dynamo script automation.")
-uidoc = uiapp.OpenAndActivateDocument(doc.PathName)
-
-Output()
-Output("Executing Dynamo script.")
-# One line to execute the Dynamo script! Pass showUI=True as a third
-# argument to display the Dynamo UI (default is False).
-revit_dynamo_util.ExecuteDynamoScript(uiapp, DYNAMO_SCRIPT_FILE_PATH)
-
-Output()
-Output("Finished Dynamo script.")
-```
+- Dynamo task scripts always run with the "Use separate Revit session for each Revit file" option.
+- RBP works on a temporary copy of the .dyn (with the Run mode forced to 'Automatic'), so the folder containing the .dyn must be writable.
+- Do not call `UIApplication.OpenAndActivateDocument(doc.PathName)` from a Python task script to drive Dynamo yourself: `PathName` is empty for a detached document, and the activated document can no longer be closed by RBP at the end of processing.
 
 ## Pre-processing scripts
 

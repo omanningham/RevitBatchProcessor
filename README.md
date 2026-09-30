@@ -15,7 +15,7 @@ See the [Releases](https://github.com/bvn-architecture/RevitBatchProcessor/relea
 
 ## RBP Sample Scripts
 
-Simple task, pre- and post-processing examples are in [docs/SampleScripts.md](docs/SampleScripts.md). The UI is described in [docs/ui.md](docs/ui.md).
+Simple task, pre- and post-processing examples are in [docs/SampleScripts.md](docs/SampleScripts.md). The UI is described in [docs/ui.md](docs/ui.md). Fork-specific changes are in [docs/britton-customizations.md](docs/britton-customizations.md).
 
 [Click here for some sample RBP python scripts maintained by Jan Christel (@jchristel)](https://github.com/jchristel/SampleCodeRevitBatchProcessor/)
 
@@ -60,6 +60,13 @@ This tool doesn't _do_ any of these things, but it _allows_ you to do them:
 
 This tool enables you to do things with Revit files on a very large scale. Because of this ability, Python or Dynamo scripts that make modifications to Revit files (esp. workshared files) should be developed with the utmost care! You will need to be confident in your ability to write Python or Dynamo scripts that won't ruin your files en-masse. The Revit Batch Processor's 'Detach from Central' option should be used both while testing and for scripts that do not explicitly depend on working with a live workshared Central file.
 
+**Data safety:**
+
+- Test on disposable copies of your models, never on production files.
+- 'Detach from Central' only applies to workshared files. Non-workshared .rvt files and families (.rfa) are opened directly, so a task script that saves the document modifies the original. A detached document that is saved becomes a new central model.
+- 'Create New Local' is the only mode that does not detach. The local file is created under `C:\REVIT_LOCAL<year>` and any file already present at that path is deleted first.
+- In this fork, a path containing a `TMP` folder is re-saved over itself before the task runs (BRT-03). See [docs/britton-customizations.md](docs/britton-customizations.md).
+
 # Build & Installation Instructions
 
 ## Development with coding agents
@@ -76,7 +83,7 @@ The Revit Batch Processor (GUI) application will appear in the Start menu after 
 
 ## Build from Source code
 
-Open the solution file RevitBatchProcessor.sln in Visual Studio 2017 or later and run Build Solution (F6).
+Open the solution file RevitBatchProcessor.sln in Visual Studio and run Build Solution. The Revit 2025-2027 addins target `net10.0-windows`, which requires Visual Studio 18.0 (2026) or later with the .NET 10 SDK; older versions only need Visual Studio 2017 or later. Building replaces the addin files already installed under `%APPDATA%`: read the build section of [docs/agent-development.md](docs/agent-development.md) first.
 
 Revit addins will be automatically deployed to the Addins folder for each available Revit version [2015-2027]. e.g. %APPDATA%\Autodesk\Revit\Addins\2019
 
@@ -88,7 +95,7 @@ When rebuilding, please make sure all Revit applications are closed before attem
 
 - At least one version of Revit installed. Currently supports Revit versions 2015 through 2027.
 - To build from source code, Visual Studio version 2017 or later.
-- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: The Dynamo script MUST have been saved with the 'Automatic' Run mode. There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
+- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: RBP runs a temporary copy of the Dynamo script with the 'Automatic' Run mode, so the script's folder must be writable. Dynamo support for Revit 2025-2027 has not been qualified in this fork (see [docs/net10-pilot.md](docs/net10-pilot.md)). There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
 - If using an Excel file for the Revit File List, Microsoft Office / Excel installed.
 
 # License
@@ -126,7 +133,7 @@ Daniel Rumery [@DanRumery](https://github.com/DanRumery) (Original / Primary Aut
 # Usage
 
 The ***two ingredients*** you will need in order to use the Revit Batch Processor ("RBP") are:
-- An **Excel (.xlsx) file** or **Text (.txt) file** that contains a list of Revit file paths. Each file path must be fully qualified (no partial paths).
+- An **Excel (.xlsx / .xls) file**, **CSV (.csv) file** or **Text (.txt) file** that contains a list of Revit file paths. Each file path must be fully qualified (no partial paths).
   
   For an Excel file this means the first column of each row contains a file path.
 
@@ -224,6 +231,8 @@ Alternatively, RBP can be run in batch processing mode without a settings file, 
 %LOCALAPPDATA%\RevitBatchProcessor\BatchRvt.exe --task_script MyDynamoWorkspace.dyn --file_list RevitFileList.xlsx --revit_version 2018
 ```
 
+Two options are not listed in the help text below: `--per_file_timeout` (see `--help` on your build) and `--worksets last_viewed`.
+
 NOTE: this mode will operate in Detach mode when processing Central files. The **--revit_version** argument is optional here---if it is omitted then RBP will use the version of Revit that each Revit file was saved in.
 
 To see help on all available command-line options use `--help`:
@@ -288,7 +297,7 @@ Feedback and suggestions for improvement are more than welcome! Please track and
 
 - There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit. If two or more versions of Dynamo are installed for the same Revit version then the Revit Batch Processor fails to run the Dynamo task script because the required Dynamo Revit module is not loaded. This may be fixed in a future version.
 - Dynamo scripts will always be executed using the 'Use separate Revit session for each Revit file' option. This restriction is due to the context in which Revit Batch Processor operates with the Revit API, which prevents the active UI document from being closed or switched during the Revit session. (NOTE: When executing a Dynamo task script, the Revit Batch Processor opens the document in the UI and is therefore subject to this Revit API limitation. For Python task scripts, the Revit Batch Processor only opens the document in memory, so Python scripts do not suffer this restriction!)
-- Revit Batch Processor currently only recognizes and automatically handles Revit dialog boxes presented in English (dialog title, text and button text). If you're using a non-English version of Windows or Revit then it's very likely RBP will fail to handle any dialog boxes that appear during processing.
+- Revit Batch Processor currently only recognizes and automatically handles Revit dialog boxes presented in English (dialog title, text and button text). If you're using a non-English version of Windows or Revit then it's very likely RBP will fail to handle any dialog boxes that appear during processing. (This fork adds a few French button labels — Fermer / Oui / Non — see [docs/britton-customizations.md](docs/britton-customizations.md); coverage is partial.)
 - Revit Batch Processor requires write access to the folder containing the Dynamo script. This because it makes a temporary copy of the Dynamo script in the same folder as the original. The temporary copy is made so that the script's Run mode can be temporarily set to 'Automatic' (if it isn't already). It is created in the same folder as the original so that any relative paths in the script will remain valid.
 
 <!---
