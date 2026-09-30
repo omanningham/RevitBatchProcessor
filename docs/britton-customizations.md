@@ -65,13 +65,15 @@ compare le texte de chaque contrôle à chacun des libellés, après suppression
 esperluettes du texte du contrôle, suppression des espaces en bordure et conversion
 en minuscules. Cela permet notamment de rechercher `Close` et `Fermer` ensemble.
 
-Deux limites actuelles sont visibles dans le code :
+`controlText` accepte un libellé seul ou une liste/un tuple de libellés. Chaque
+contrôle correspondant n'est retourné qu'une fois, même si plusieurs libellés
+l'identifient (`OK`, `Ok`). Le comparateur utilise uniquement des méthodes .NET
+sur les textes, sans conversion `str()`. Dans `revit_dialog_detection.py`, la
+détection du bouton `Cancel Link` utilise `in CANCEL_LINK_BUTTON_TEXT`.
 
-- Une chaîne seule est parcourue caractère par caractère. Certains appelants passent encore des chaînes ; leur reconnaissance de boutons peut échouer.
-- Deux libellés équivalents après normalisation peuvent produire deux entrées pour le même contrôle. La liste `OK`, `Ok` peut ainsi faire échouer un appelant exigeant exactement un résultat.
-
-Ces limites sont documentées, pas corrigées par ce document. Une évolution devra
-prendre en charge les chaînes et les listes tout en évitant les résultats dupliqués.
+Vérifié hors Revit le 30 septembre 2026 sous IronPython 3.4.2 et 2.7.3 : libellé
+seul (non découpé en caractères), liste, aucun résultat, doublon `OK`/`Ok` et
+accents. Les scénarios de dialogues réels restent à qualifier dans Revit.
 
 ## BRT-03 — Prétraitement des fichiers dans un dossier TMP
 
