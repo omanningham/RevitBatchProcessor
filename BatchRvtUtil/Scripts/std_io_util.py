@@ -41,8 +41,8 @@ def RedirectScriptOutput(output):
 def RestoreScriptOutput():
     sys.stderr.flush()
     sys.stdout.flush()
-    sys.stderr = ORIGINAL_STDOUT
-    sys.stdout = ORIGINAL_STDERR
+    sys.stderr = ORIGINAL_STDERR
+    sys.stdout = ORIGINAL_STDOUT
     return
 
 def Output(m="", msgId=""):

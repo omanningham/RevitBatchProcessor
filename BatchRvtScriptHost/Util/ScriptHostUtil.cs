@@ -38,12 +38,20 @@ public static class ScriptHostUtil
         object uiApplicationObject
     )
     {
+        ExecuteBatchScriptHost(pluginFolderPath, uiApplicationObject, null);
+    }
+
+    public static void ExecuteBatchScriptHost(string pluginFolderPath, object uiApplicationObject, string revitBuild)
+    {
         var environmentVariables = GetEnvironmentVariables();
 
         if (environmentVariables == null) return;
         var batchRvtScriptsFolderPath = GetBatchRvtScriptsFolderPath(environmentVariables);
 
         if (batchRvtScriptsFolderPath == null) return;
+        var standardLibraryFolderPath = Path.Combine(Path.GetFullPath(pluginFolderPath), "lib");
+        WriteRuntimeDiagnostics(pluginFolderPath, batchRvtScriptsFolderPath, standardLibraryFolderPath, revitBuild);
+        if (revitBuild != null) ScriptUtil.ValidateModernRuntime();
         var engine = ScriptUtil.CreatePythonEngine();
 
         ScriptUtil.AddBuiltinVariables(
@@ -64,18 +72,43 @@ public static class ScriptHostUtil
         {
             batchRvtScriptsFolderPath,
             pluginFullFolderPath,
-            Path.Combine(pluginFullFolderPath, "lib"),  // IronPython 3 stdlib (from IronPython.StdLib NuGet)
             batchRvtFolderPath
         });
 
-        ScriptUtil.AddPythonStandardLibrary(mainModuleScope);
-        // Required for IronPython 2.7 engines (2015-2026), which have no built-in stdlib.
-        // Safe for IronPython 3 engines too (e.g. Revit 2027): this only appends a fallback
-        // meta_path importer, so it never overrides an import IronPython 3 already resolves natively.
+        ScriptUtil.AddPythonStandardLibrary(mainModuleScope, standardLibraryFolderPath);
+        WriteRuntimeDiagnostics(pluginFolderPath, batchRvtScriptsFolderPath, standardLibraryFolderPath, revitBuild);
 
         var scriptSource = ScriptUtil.CreateScriptSourceFromFile(engine, scriptHostFilePath);
 
         scriptSource.Execute(mainModuleScope);
+    }
+
+    private static void WriteRuntimeDiagnostics(string pluginFolderPath, string scriptsFolderPath, string libraryFolderPath, string revitBuild)
+    {
+        var lines = new List<string>
+        {
+            "UTC: " + DateTime.UtcNow.ToString("o"),
+            "Revit build: " + revitBuild,
+            "Runtime: " + Environment.Version,
+            "Plugin: " + pluginFolderPath,
+            "Scripts: " + scriptsFolderPath,
+            "StdLib: " + libraryFolderPath
+        };
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var name = assembly.GetName().Name;
+            if (!assembly.IsDynamic && (name.StartsWith("IronPython") || name.StartsWith("BatchRvt") ||
+                name.StartsWith("Microsoft.Scripting") || name == "Microsoft.Dynamic")
+                ) lines.Add(assembly.FullName + " | " + assembly.Location);
+        }
+        try
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "BatchRvt", "Diagnostics");
+            Directory.CreateDirectory(folder);
+            File.WriteAllLines(Path.Combine(folder, "runtime-" + System.Diagnostics.Process.GetCurrentProcess().Id + ".txt"), lines);
+        }
+        catch (IOException e) { System.Diagnostics.Trace.WriteLine(e); }
+        catch (UnauthorizedAccessException e) { System.Diagnostics.Trace.WriteLine(e); }
     }
 
     private static string GetParentFolder(string folderPath)

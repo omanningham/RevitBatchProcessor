@@ -236,7 +236,7 @@ def WithOpenedDetachedDocument(uiapp, openInUI, centralFilePath, discardWorksets
             
             try:
                 revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,True)
-            except Exception, e:
+            except Exception as e:
                 revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,False)
                 
             finally:
@@ -254,7 +254,7 @@ def WithOpenedDetachedDocument(uiapp, openInUI, centralFilePath, discardWorksets
             newdoc = revit_file_util.OpenDetachAndPreserveWorksets(app, centralFilePath, closeAllWorksets, worksetConfig, audit)
             try:
                 revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,True)
-            except Exception, e:
+            except Exception as e:
                 revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,False)
                 
             finally:
