@@ -77,7 +77,7 @@ The Revit Batch Processor (GUI) application will appear in the Start menu after 
 
 ## Build from Source code
 
-Open the solution file RevitBatchProcessor.sln in Visual Studio and run Build Solution. The Revit 2025-2027 addins target `net10.0-windows`, which requires Visual Studio 18.0 (2026) or later with the .NET 10 SDK; older versions only need Visual Studio 2017 or later. Building replaces the addin files already installed under `%APPDATA%`: read the build section of [docs/agent-development.md](docs/agent-development.md) first.
+Open the solution file RevitBatchProcessor.sln in Visual Studio and run Build Solution. The Revit 2025 and 2026 addins target `net8.0-windows` (Visual Studio 2022 17.8 or later, per [Microsoft Learn](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#targeting-and-support-rules)), and the Revit 2027 addin targets `net10.0-windows` (Visual Studio 2026, version 18.0 or later, with the .NET 10 SDK). The other projects need Visual Studio 2017 or later. Building replaces the addin files already installed under `%APPDATA%`: read the build section of [docs/agent-development.md](docs/agent-development.md) first.
 
 Revit addins will be automatically deployed to the Addins folder for each available Revit version [2015-2027]. e.g. %APPDATA%\Autodesk\Revit\Addins\2019
 
