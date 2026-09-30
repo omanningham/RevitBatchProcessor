@@ -60,6 +60,12 @@ This tool enables you to do things with Revit files on a very large scale. Becau
 
 # Build & Installation Instructions
 
+## Development with coding agents
+
+See the [shared agent development guide](docs/agent-development.md) for repository
+architecture, build constraints and validation guidance. Entry points are provided
+in `AGENTS.md`, `CLAUDE.md` and `.github/copilot-instructions.md`.
+
 ## Installer
 
 [Installer for Revit Batch Processor v1.13.0 beta](https://github.com/bvn-architecture/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
