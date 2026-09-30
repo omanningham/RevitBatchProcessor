@@ -15,6 +15,8 @@ See the [Releases](https://github.com/bvn-architecture/RevitBatchProcessor/relea
 
 ## RBP Sample Scripts
 
+Simple task, pre- and post-processing examples are in [docs/SampleScripts.md](docs/SampleScripts.md). The UI is described in [docs/ui.md](docs/ui.md).
+
 [Click here for some sample RBP python scripts maintained by Jan Christel (@jchristel)](https://github.com/jchristel/SampleCodeRevitBatchProcessor/)
 
 Many thanks to Jan for authoring and making these RBP sample scripts public!
@@ -27,15 +29,14 @@ See the [Revit Batch Processor FAQ](https://github.com/bvn-architecture/RevitBat
 
 This tool doesn't _do_ any of these things, but it _allows_ you to do them:
 
-- Open all the Revit files across your Revit projects and run a health-check script against them. Keeping an eye on the health and performance of many Revit files is time-consuming. You could use this to check in on all your files daily and react to problems before they get too gnarly.
+- Open all the Revit files across your Revit projects and run a health-check script against them. Keeping an eye on the health and performance of many Revit files is time-consuming. You could use this to check in on your files regularly and react to problems before they get too gnarly (note that RBP normally works on detached copies, so the results describe a snapshot of the central model).
 - Perform project and family audits across your Revit projects.
 - Run large scale queries against many Revit files.
-- Mine data from your Revit projects for analytics or machine learning projects.
-- Automated milestoning of Revit projects.
+- Extract data from your Revit projects for analytics.
 - Automated housekeeping tasks (e.g. place elements on appropriate worksets)
 - Batch upgrading of Revit projects and family files.
 - Testing your own Revit API scripts and Revit addins against a variety of Revit models and families in an automated manner.
-- Essentially anything you can do to one Revit file with the Revit API or a Dynamo script, you can now do to many!
+- Most things you can do to one Revit file with the Revit API or a Dynamo script, you can now do to many (read [Unlimited Power](#unlimited-power) before modifying workshared files).
 
 ![Screenshot of the UI](BatchRvt_Screenshot.png)
 
@@ -53,8 +54,9 @@ This tool doesn't _do_ any of these things, but it _allows_ you to do them:
 
 ## Unlimited Power
 
-> "With great power come great responsibility"
-[-- Spiderman](https://quoteinvestigator.com/2015/07/23/great-power/)
+> "With great power comes great responsibility"
+>
+> [-- Spiderman](https://quoteinvestigator.com/2015/07/23/great-power/)
 
 This tool enables you to do things with Revit files on a very large scale. Because of this ability, Python or Dynamo scripts that make modifications to Revit files (esp. workshared files) should be developed with the utmost care! You will need to be confident in your ability to write Python or Dynamo scripts that won't ruin your files en-masse. The Revit Batch Processor's 'Detach from Central' option should be used both while testing and for scripts that do not explicitly depend on working with a live workshared Central file.
 
@@ -76,7 +78,7 @@ The Revit Batch Processor (GUI) application will appear in the Start menu after 
 
 Open the solution file RevitBatchProcessor.sln in Visual Studio 2017 or later and run Build Solution (F6).
 
-Revit addins will be automatically deployed to the Addins folder for each available Revit version [2015-2026]. e.g. %APPDATA%\Autodesk\Revit\Addins\2019
+Revit addins will be automatically deployed to the Addins folder for each available Revit version [2015-2027]. e.g. %APPDATA%\Autodesk\Revit\Addins\2019
 
 The BatchRvtGUI project is the GUI that drives the underlying engine (the BatchRvt project). Once built, run BatchRvtGUI.exe to start the Revit Batch Processor GUI.
 
@@ -84,9 +86,9 @@ When rebuilding, please make sure all Revit applications are closed before attem
 
 # Requirements
 
-- At least one version of Revit installed. Currently supports Revit versions 2015 through 2026.
+- At least one version of Revit installed. Currently supports Revit versions 2015 through 2027.
 - To build from source code, Visual Studio version 2017 or later.
-- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2026). NOTE: The Dynamo script MUST have been saved with the 'Automatic' Run mode. There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
+- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: The Dynamo script MUST have been saved with the 'Automatic' Run mode. There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
 - If using an Excel file for the Revit File List, Microsoft Office / Excel installed.
 
 # License
@@ -164,7 +166,7 @@ The ***two ingredients*** you will need in order to use the Revit Batch Processo
   ```python
   '''Output "Hello Revit world!" to the console / log.'''
 
-  # This section is common to all Python task scripts. 
+  # This section is common to all Python task scripts.
   import clr
   import System
 
