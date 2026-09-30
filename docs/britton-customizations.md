@@ -101,8 +101,9 @@ le prétraitement qui constituent l'adaptation.
 Points à préserver ou à vérifier :
 
 - Ce prétraitement peut écraser le fichier de test au chemin reçu, avant l'exécution de la tâche. Utiliser une copie jetable pour toute validation.
-- Les deux clauses `except Exception, e` ajoutées ici utilisent la syntaxe Python 2, incompatible avec Python 3. L'addin 2027 déclare IronPython 3 : ce chemin nécessite une correction de compatibilité avant validation sur ce moteur.
-- `SafeCloseWithoutSave` ne ferme effectivement le document que si `isOpenedInUI` est faux. Dans la branche `openInUI=True`, le document temporaire est pourtant ouvert par l'API sans activation UI : sa fermeture effective reste à vérifier.
+- Les deux clauses `except Exception, e` Python 2 d'origine ont été converties en `except Exception as e` (compatible Python 2 et 3).
+- Le prétraitement est factorisé dans `PreprocessTemporaryCentralFile`. Le document temporaire est ouvert par l'API, sans activation UI, dans les deux modes `openInUI` : il est donc toujours fermé (`SafeCloseWithoutSave(..., False, ...)`), y compris si les deux enregistrements échouent.
+- Vérifié hors Revit (faux objets Revit, IronPython 3.4.2 et 2.7.3) : ordre ouverture, enregistrement, fermeture, puis `PurgeReleasedAPIObjects`; repli `clearTransmitted=False`; fermeture et remontée de l'erreur si le repli échoue aussi. La fermeture réelle dans Revit reste à qualifier sur copie jetable.
 
 ## BRT-04 — Encodage et imports
 
