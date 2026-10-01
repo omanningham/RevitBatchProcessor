@@ -94,7 +94,7 @@ When rebuilding, please make sure all Revit applications are closed before attem
 # Requirements
 
 - At least one version of Revit installed. Currently supports Revit versions 2015 through 2027.
-- To build from source code, Visual Studio version 2017 or later.
+- To build the whole solution from source code, Visual Studio 2026 (version 18.0 or later, required to target `net10.0`) with the .NET 10 SDK. Visual Studio 2017 or later is enough only for the projects that do not target .NET 10. See [Microsoft Learn](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#targeting-and-support-rules).
 - If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: RBP runs a temporary copy of the Dynamo script with the 'Automatic' Run mode, so the script's folder must be writable. Dynamo support for Revit 2025-2027 has not been qualified in this fork (see [docs/net10-pilot.md](docs/net10-pilot.md)). There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
 - If using an Excel file for the Revit File List, Microsoft Office / Excel installed.
 
