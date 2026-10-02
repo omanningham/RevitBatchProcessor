@@ -52,7 +52,11 @@ jobs:
           existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
           if [ -z "$existing" ]; then
             gh issue create --title "Upstream : $ahead commit(s) à examiner" --label upstream-sync --body "$body"
-          elif gh issue view "$existing" --json body,comments --jq '[.body] + [.comments[].body] | join("\n")' | grep -qF "$marker"; then
+            exit 0
+          fi
+          # Capture first: grep -q on a pipe could SIGPIPE gh under pipefail.
+          thread=$(gh issue view "$existing" --json body,comments --jq '[.body] + [.comments[].body] | join("\n")')
+          if grep -qF "$marker" <<<"$thread"; then
             echo "Issue #$existing already mentions $head_sha"
           else
             gh issue comment "$existing" --body "$body"
