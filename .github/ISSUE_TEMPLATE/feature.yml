@@ -1,0 +1,24 @@
+name: Amélioration
+description: Proposer une fonctionnalité ou un changement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin
+      description: Quel problème cette amélioration résout-elle ?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Versions Revit concernées
+      options:
+        - label: 2015–2024 (.NET Framework 4.8, IronPython 2.7)
+        - label: 2025–2027 (.NET 10, IronPython 3.4)

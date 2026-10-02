@@ -1,0 +1,41 @@
+name: CodeQL
+
+# C# is analysed without a build (build-mode: none): no Revit or MSBuild needed.
+# "actions" analyses the workflows themselves.
+# Python is not analysed: the scripts target IronPython 2.7 / 3.4 (clr, System),
+# which the CPython-oriented extractor does not model.
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  schedule:
+    - cron: '41 6 * * 2' # Tuesdays 06:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp, actions]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

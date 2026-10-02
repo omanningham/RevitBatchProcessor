@@ -1,0 +1,54 @@
+name: Bogue
+description: Signaler un comportement incorrect de Revit Batch Processor
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ne joignez **aucun modèle Revit de production** ni information confidentielle.
+        Pour une vulnérabilité, utilisez plutôt le signalement privé (onglet Security).
+  - type: input
+    id: rbp-version
+    attributes:
+      label: Version de RBP
+      description: Version de l'installateur ou commit utilisé.
+      placeholder: v1.13.0-beta, ou commit 2b00c1b
+    validations:
+      required: true
+  - type: input
+    id: revit-version
+    attributes:
+      label: Version et mise à jour de Revit
+      placeholder: Revit 2026.5 (build 26.5.x)
+    validations:
+      required: true
+  - type: dropdown
+    id: entry
+    attributes:
+      label: Mode de lancement
+      options:
+        - GUI (BatchRvtGUI)
+        - Console (BatchRvt.exe)
+        - Dynamo
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Étapes pour reproduire
+      description: Options de traitement, type de liste de fichiers, script de tâche (ou extrait minimal).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu et observé
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Extrait du journal
+      description: Journal RBP ou `%TEMP%/BatchRvt/Diagnostics`. Retirer les chemins sensibles.
+      render: text

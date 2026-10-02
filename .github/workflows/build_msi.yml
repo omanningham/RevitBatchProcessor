@@ -4,115 +4,82 @@ on:
   release:
     types:
       [released]
-  
+
+# No concurrency group on purpose: GitHub keeps only one pending run per group
+# and cancels the others, which would leave a release without its installer.
+permissions:
+  contents: read
+
 jobs:
   build:
+    runs-on: windows-latest
+    permissions:
+      contents: write # upload the installer to the release
+    steps:
+      # Default checkout of a release event is the tagged commit.
+      - name: Checkout tag
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild path
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
+
+      - name: Setup .NET 10 SDK (Revit 2025-2027 addins)
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore NuGet packages
+        run: nuget restore "RevitBatchProcessor.sln"
+
+      - name: Set version from tag
+        id: version_num_set
+        run: ./.github/scripts/set_version.ps1 -Tag "${{ github.event.release.tag_name }}"
+
+      - name: Build solution
+        run: |
+            msbuild -version
+            msbuild "RevitBatchProcessor.sln" /p:Configuration=Release /p:Platform="x64" /m
+
+      - name: Verify installer sources exist
+        shell: pwsh
+        run: ./.github/scripts/verify_installer_sources.ps1
+
+      - name: Create installer file
+        id: create_installer_file
+        uses: Minionguyjpro/Inno-Setup-Action@ec985ef724d1fb4a05bfbc1a8e49930dc76d2b0c # v1.2.9
+        with:
+          path: Setup/RevitBatchProcessor.iss
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: Setup\Output\RevitBatchProcessorSetup_${{github.event.release.tag_name}}.exe
+          fail_on_unmatched_files: true
+
+  # Version bump PR against master: README, installer script and assembly version.
+  # Requires "Allow GitHub Actions to create and approve pull requests" in the
+  # repository Actions settings.
+  version-pr:
+    needs: build
     runs-on: windows-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Checkout repo
+      - name: Checkout master
         uses: actions/checkout@v4
         with:
           ref: master
 
-      - name: Setup MSBuild path
-        uses: microsoft/setup-msbuild@v3     
-
-      - name: Restore NuGet packages
-        run: nuget restore "RevitBatchProcessor.sln"
-      
       - name: Setup Python environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-                    
-      - name: Get version number
+
+      - name: Set version from tag
         id: version_num_set
-        run: |
-          echo "Version number from tag is ${{github.event.release.tag_name}}"
-            $versionNum = "${{github.event.release.tag_name}}"
-            $versionNum = $versionNum -replace "-beta", ""
-            $version_number = $versionNum -replace "v", ""
-            echo "Numeric only from that is $version_number"
-            echo "version=$version_number" >> $env:GITHUB_OUTPUT
-          
-      - name: Update installer config
-        run: |
-            $content = Get-Content -Path Setup/RevitBatchProcessor.iss -Raw
-            echo "Input installer config is $content"
-            $tag = "${{ github.event.release.tag_name }}"
-            # Replace the entire OutputBaseFilename line based on tag
-            if ($tag -like "*-beta") {
-                $content = $content -replace 'OutputBaseFilename=.*', 'OutputBaseFilename=RevitBatchProcessorSetup_v{#AppVersion}-beta'
-            } else {
-                $content = $content -replace 'OutputBaseFilename=.*', 'OutputBaseFilename=RevitBatchProcessorSetup_v{#AppVersion}'
-            }
-            $content = $content -replace '#define AppVersion ".*"', '#define AppVersion "${{steps.version_num_set.outputs.version}}"'
-            
-            
-            echo "Updated installer config is $content"
-            Set-Content -Path Setup/RevitBatchProcessor.iss -Value $content
-
-      - name: Update version number - GlobalAssemblyInfo.cs
-        run: |
-          $assemblyInfoFile = "Common/GlobalAssemblyInfo.cs"
-          $fileContent = Get-Content -Path $assemblyInfoFile -Raw
-          echo "Input version number is $fileContent"
-          $fileContent = $fileContent -replace '\("\d+\.\d+\.\d+"\)', "(`"${{steps.version_num_set.outputs.version}}`")" 
-          echo "Updated version number is $fileContent"
-          Set-Content -Path $assemblyInfoFile -Value $fileContent            
-
-      - name: Build solution
-        run: |
-            msbuild "RevitBatchProcessor.sln" /p:Configuration=Release /p:Platform="x64" /m
-
-      - name: Verify installer sources exist
-        shell: pwsh
-        run: |
-            $missing = @()
-            function Test-DirWithFiles($path) {
-              if (-not (Test-Path -Path $path -PathType Container)) { return "Missing directory: $path" }
-              $fileCount = (Get-ChildItem -Path $path -File -ErrorAction SilentlyContinue | Measure-Object).Count
-              if ($fileCount -eq 0) { return "Directory has no files (expected build output): $path" }
-              return $null
-            }
-
-            # 1. Inno Setup script file
-            $issFile = "Setup/RevitBatchProcessor.iss"
-            if (-not (Test-Path -Path $issFile -PathType Leaf)) { $missing += "Missing file: $issFile" }
-
-            # 2. GUI output directory
-            $guiOut = "BatchRvtGUI/bin/x64/Release"
-            $res = Test-DirWithFiles $guiOut; if ($res) { $missing += $res }
-
-            # 3. Addin years 2015-2027 (directories + .addin files)
-            foreach ($year in 2015..2027) {
-              $addinDir = "BatchRvtAddin$year/bin/x64/Release"
-              $res = Test-DirWithFiles $addinDir; if ($res) { $missing += $res }
-              $addinFile = "BatchRvtAddin$year/BatchRvtAddin$year.addin"
-              if (-not (Test-Path -Path $addinFile -PathType Leaf)) { $missing += "Missing file: $addinFile" }
-            }
-
-            if ($missing.Count -eq 0) {
-              Write-Host "Verification succeeded: all referenced installer sources exist."
-            } else {
-              Write-Host "The following required sources were NOT found:" 
-              $missing | ForEach-Object { Write-Host $_ }
-            }
-
-      - name: Create installer file
-        id: create_installer_file
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
-        with: 
-          path: Setup/RevitBatchProcessor.iss
-          
-      - name: Upload Release Asset
-        id: upload-release-asset 
-        uses: softprops/action-gh-release@v2
-        with:
-          files: Setup\Output\RevitBatchProcessorSetup_${{github.event.release.tag_name}}.exe
+        run: ./.github/scripts/set_version.ps1 -Tag "${{ github.event.release.tag_name }}"
 
       - name: Update readme with new version
         env:
@@ -120,12 +87,13 @@ jobs:
           TAG_VALUE: ${{ github.event.release.tag_name }}
         run: |
           python $env:GITHUB_WORKSPACE\.github\workflows\update_readme.py
-          
+
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
           commit-message: "Update version to ${{github.event.release.tag_name}} in README and .iss file"
           title: '[Actions] Update README and .iss file'
           body: 'Update version in README'
-          branch: github-actions/update-readme 
+          branch: github-actions/update-readme
