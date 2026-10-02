@@ -1,0 +1,16 @@
+# Version updates for GitHub Actions only.
+# NuGet is deliberately excluded: the agent guide forbids dependency migrations
+# alongside fixes, Revit 2025-2027 restore in locked mode, and IronPython / DLR /
+# Revit API versions are tied to Revit. Dependabot security alerts stay enabled
+# in the repository settings.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci

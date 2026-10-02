@@ -1,0 +1,36 @@
+# Path-based labels applied to pull requests by .github/workflows/labeler.yml.
+revit-legacy:
+  - changed-files:
+      - any-glob-to-any-file: 'BatchRvtAddin20{15,16,17,18,19,20,21,22,23,24}/**'
+
+revit-modern:
+  - changed-files:
+      - any-glob-to-any-file: 'BatchRvtAddin20{25,26,27}/**'
+
+python-scripts:
+  - changed-files:
+      - any-glob-to-any-file: 'BatchRvtUtil/Scripts/**'
+
+script-host:
+  - changed-files:
+      - any-glob-to-any-file: 'BatchRvtScriptHost/**'
+
+gui:
+  - changed-files:
+      - any-glob-to-any-file: 'BatchRvtGUI/**'
+
+installer:
+  - changed-files:
+      - any-glob-to-any-file: ['Setup/**', 'AddinDeployment/**', '.github/workflows/build_msi.yml']
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', '**/*.md']
+
+britton:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/britton-customizations.md'
