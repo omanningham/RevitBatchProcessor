@@ -52,12 +52,17 @@ def GetButtonText(buttonInfo):
     return TextWithoutAmpersands(buttonText)
 
 def FilterControlsByText(controls, controlText):
+    # controlText is either a single label or a list/tuple of accepted labels.
+    # Each matching control is returned once, even if several labels match it.
+    if isinstance(controlText, (list, tuple)):
+        labels = controlText
+    else:
+        labels = [controlText]
+    normalizedLabels = list(label.Trim().ToLower() for label in labels)
     targetControls = list(
             control
             for control in controls
-                for controltxt in controlText
-                    if TextWithoutAmpersands(control.WindowText).Trim().ToLower() == str(controltxt).Trim().ToLower()
-
+            if TextWithoutAmpersands(control.WindowText).Trim().ToLower() in normalizedLabels
         )
     return targetControls
 

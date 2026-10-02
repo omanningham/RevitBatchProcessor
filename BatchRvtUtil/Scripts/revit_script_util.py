@@ -219,6 +219,20 @@ def SafeCloseWithoutSave(doc, isOpenedInUI, closedMessage, output):
     app.PurgeReleasedAPIObjects()
     return
 
+def PreprocessTemporaryCentralFile(app, centralFilePath, closeAllWorksets, worksetConfig, audit, output):
+    output("Fichier Temporaire")
+    newdoc = revit_file_util.OpenDetachAndPreserveWorksets(app, centralFilePath, closeAllWorksets, worksetConfig, audit)
+    try:
+        try:
+            revit_file_util.SaveAsNewCentral(newdoc, centralFilePath, True, True)
+        except Exception as e:
+            revit_file_util.SaveAsNewCentral(newdoc, centralFilePath, True, False)
+    finally:
+        # The temporary document is opened through the API (never activated in the UI),
+        # so it must always be closed, whatever the openInUI setting is.
+        SafeCloseWithoutSave(newdoc, False, "Closed temporary instance of central file: " + centralFilePath, output)
+    return
+
 def WithOpenedDetachedDocument(uiapp, openInUI, centralFilePath, discardWorksets, worksetConfig, audit, documentAction, output):
     app = uiapp.Application
     result = None
@@ -231,17 +245,7 @@ def WithOpenedDetachedDocument(uiapp, openInUI, centralFilePath, discardWorksets
     isTMPPath = mySepPath.count("TMP") > 0
     if openInUI:
         if isTMPPath:
-            output("Fichier Temporaire")
-            newdoc = revit_file_util.OpenDetachAndPreserveWorksets(app, centralFilePath, closeAllWorksets, worksetConfig, audit)
-            
-            try:
-                revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,True)
-            except Exception, e:
-                revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,False)
-                
-            finally:
-                SafeCloseWithoutSave(newdoc, openInUI, "Closed temporary instance of central file: " + centralFilePath, output)
-                #newdoc.Close(False)
+            PreprocessTemporaryCentralFile(app, centralFilePath, closeAllWorksets, worksetConfig, audit, output)
             
         if discardWorksets:
             uidoc = revit_file_util.OpenAndActivateDetachAndDiscardWorksets(uiapp, centralFilePath, audit)
@@ -250,16 +254,7 @@ def WithOpenedDetachedDocument(uiapp, openInUI, centralFilePath, discardWorksets
         doc = uidoc.Document
     else:
         if isTMPPath:
-            output("Fichier Temporaire")
-            newdoc = revit_file_util.OpenDetachAndPreserveWorksets(app, centralFilePath, closeAllWorksets, worksetConfig, audit)
-            try:
-                revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,True)
-            except Exception, e:
-                revit_file_util.SaveAsNewCentral(newdoc,centralFilePath,True,False)
-                
-            finally:
-                SafeCloseWithoutSave(newdoc, openInUI, "Closed temporary instance of central file: " + centralFilePath, output)
-                #newdoc.Close(False)
+            PreprocessTemporaryCentralFile(app, centralFilePath, closeAllWorksets, worksetConfig, audit, output)
 
         if discardWorksets:
             doc = revit_file_util.OpenDetachAndDiscardWorksets(app, centralFilePath, audit)

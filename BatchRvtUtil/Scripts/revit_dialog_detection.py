@@ -187,7 +187,7 @@ def DismissCheekyRevitDialogBoxes(revitProcessId, output_):
                     and
                     len(win32Buttons) == 1
                     and
-                    ui_automation_util.GetButtonText(win32Buttons[0]) == CANCEL_LINK_BUTTON_TEXT
+                    ui_automation_util.GetButtonText(win32Buttons[0]) in CANCEL_LINK_BUTTON_TEXT
                 ):
                 pass # Do nothing for this dialog box. It will go away on its own.
             elif enabledDialog.WindowText == script_host_error.BATCH_RVT_ERROR_WINDOW_TITLE:

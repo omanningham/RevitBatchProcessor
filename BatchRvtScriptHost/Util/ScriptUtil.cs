@@ -18,6 +18,9 @@
 //
 //
 
+using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using System.Linq;
 using BatchRvt.ScriptHost.Util;
@@ -33,6 +36,29 @@ public static class ScriptUtil
     private const string PYTHON_LIB_ZIP_NAME = "python_27_lib.zip";
 
     public static void AddPythonStandardLibrary(ScriptingHosting.ScriptScope scope)
+    {
+        AddPythonStandardLibrary(scope, null);
+    }
+
+    public static void AddPythonStandardLibrary(ScriptingHosting.ScriptScope scope, string standardLibraryFolderPath)
+    {
+        var major = scope.Engine.LanguageVersion.Major;
+        if (major == 2)
+        {
+            AddPython2StandardLibrary(scope);
+            return;
+        }
+        if (major != 3) throw new NotSupportedException("Unsupported Python engine: " + scope.Engine.LanguageVersion);
+        if (string.IsNullOrWhiteSpace(standardLibraryFolderPath) ||
+            !File.Exists(Path.Combine(standardLibraryFolderPath, "encodings", "__init__.py")) ||
+            !File.Exists(Path.Combine(standardLibraryFolderPath, "json", "__init__.py")))
+            throw new DirectoryNotFoundException("IronPython 3 standard library is missing or incomplete: " + standardLibraryFolderPath);
+        AddSearchPaths(scope.Engine, new[] { Path.GetFullPath(standardLibraryFolderPath) });
+    }
+
+    // Keep legacy-only type resolution out of the Python 3 setup method.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void AddPython2StandardLibrary(ScriptingHosting.ScriptScope scope)
     {
         var thisAssembly = typeof(ScriptUtil).Assembly;
         var pythonLibResourceName = thisAssembly.GetManifestResourceNames()
@@ -59,7 +85,8 @@ public static class ScriptUtil
     {
         var searchPaths = engine.GetSearchPaths();
 
-        foreach (var path in additionalSearchPaths) searchPaths.Add(path);
+        foreach (var path in additionalSearchPaths)
+            if (!searchPaths.Contains(path)) searchPaths.Add(path);
 
         engine.SetSearchPaths(searchPaths);
     }
@@ -75,6 +102,15 @@ public static class ScriptUtil
         var engine = IronPythonHosting.Python.CreateEngine(engineOptions);
 
         return engine;
+    }
+
+    public static void ValidateModernRuntime()
+    {
+        if (Environment.Version.Major != 10)
+            throw new NotSupportedException("RBP for Revit 2025.5/2026.5/2027 requires .NET 10. Runtime: " + Environment.Version);
+        var version = typeof(IronPythonHosting.Python).Assembly.GetName().Version;
+        if (version != new Version(3, 4, 2, 0))
+            throw new NotSupportedException("RBP requires IronPython 3.4.2. Loaded engine: " + version);
     }
 
     public static ScriptingHosting.ScriptScope CreateMainModule(ScriptingHosting.ScriptEngine engine)

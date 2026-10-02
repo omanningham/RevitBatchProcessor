@@ -24,6 +24,7 @@ clr.AddReference("System.Core")
 clr.ImportExtensions(System.Linq)
 from System import AppDomain
 from System.IO import IOException, Path
+import os
 
 BATCH_RVT_UTIL_ASSEMBLY_NAME = "BatchRvtUtil"
 BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME = "BatchRvtScriptHost"
@@ -38,12 +39,25 @@ def AddBatchRvtUtilAssemblyReference():
     try:
         clr.AddReference(BATCH_RVT_UTIL_ASSEMBLY_NAME)
     except IOException as e: # Can occur if PyRevit is installed. Need to use AddReferenceToFileAndPath() in this case.
-        batchRvtScriptHostAssembly = GetExistingLoadedAssembly(BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME)
-        clr.AddReference(batchRvtScriptHostAssembly)
-        from BatchRvt.ScriptHost import ScriptHostUtil
-        environmentVariables = ScriptHostUtil.GetEnvironmentVariables()
-        batchRvtFolderPath = ScriptHostUtil.GetBatchRvtFolderPath(environmentVariables)
-        clr.AddReferenceToFileAndPath(Path.Combine(batchRvtFolderPath, BATCH_RVT_UTIL_ASSEMBLY_NAME))
+        scriptsFolder = os.environ.get("BATCHRVT__SCRIPTS_FOLDER_PATH")
+        if not scriptsFolder:
+            raise
+        assemblyPath = Path.Combine(Path.GetDirectoryName(scriptsFolder.rstrip("\\/")), BATCH_RVT_UTIL_ASSEMBLY_NAME + ".dll")
+        clr.AddReferenceToFileAndPath(assemblyPath)
+    loaded = list(assembly for assembly in AppDomain.CurrentDomain.GetAssemblies()
+                  if assembly.GetName().Name == BATCH_RVT_UTIL_ASSEMBLY_NAME)
+    if len(loaded) != 1:
+        raise RuntimeError("Ambiguous BatchRvtUtil assemblies: " + str([assembly.Location for assembly in loaded]))
+    scriptsFolder = os.environ.get("BATCHRVT__SCRIPTS_FOLDER_PATH")
+    if scriptsFolder:
+        host = GetExistingLoadedAssembly(BATCH_RVT_SCRIPT_HOST_ASSEMBLY_NAME)
+        expectedFolders = [Path.GetDirectoryName(scriptsFolder.rstrip("\\/"))]
+        if host is not None:
+            expectedFolders.append(Path.GetDirectoryName(host.Location))
+        actual = Path.GetFullPath(loaded[0].Location).lower()
+        expected = [Path.GetFullPath(Path.Combine(folder, BATCH_RVT_UTIL_ASSEMBLY_NAME + ".dll")).lower() for folder in expectedFolders]
+        if actual not in expected:
+            raise RuntimeError("Unexpected BatchRvtUtil assembly: " + loaded[0].Location)
     return
 
 AddBatchRvtUtilAssemblyReference()

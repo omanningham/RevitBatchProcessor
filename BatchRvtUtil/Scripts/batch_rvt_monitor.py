@@ -39,6 +39,21 @@ import batch_rvt_config
 import batch_rvt_util
 from batch_rvt_util import RevitVersion, ScriptDataUtil, BatchRvt
 import logging_util
+import json
+import runtime_preflight
+
+def ValidateSessionVersions(revitVersions):
+    byYear = dict((int(RevitVersion.GetRevitVersionText(version)), version) for version in revitVersions)
+    def readRuntimeConfig(year):
+        folder = RevitVersion.GetRevitExecutableFolderPath(byYear[year])
+        configPath = Path.Combine(folder, "RevitNET.runtimeconfig.json")
+        return json.loads(System.IO.File.ReadAllText(configPath))
+    try:
+        runtime_preflight.ValidateRevitVersions(byYear.keys(), readRuntimeConfig)
+        return True
+    except ValueError as error:
+        Output("ERROR: " + str(error))
+        return False
 
 def HasSupportedRevitFilePath(supportedRevitFileInfo):
     fullFilePath = supportedRevitFileInfo.GetRevitFileInfo().GetFullPath()
@@ -219,6 +234,9 @@ def RunSingleRevitTask(batchRvtConfig):
         Output()
         Output("ERROR: The specified Revit version is not installed or the addin is not installed for it.")
         aborted = True
+
+    if not aborted:
+        aborted = not ValidateSessionVersions([revitVersion])
 
     if not aborted:
         if batchRvtConfig.ExecutePreProcessingScript:
@@ -431,6 +449,12 @@ def ProcessRevitFiles(batchRvtConfig, supportedRevitFileList):
 def RunBatchRevitTasks(batchRvtConfig):
     aborted = False
 
+    supportedRevitFileList = GetSupportedRevitFiles(batchRvtConfig)
+    if supportedRevitFileList is None:
+        return True
+    if not ValidateSessionVersions([GetRevitVersionForRevitFileSession(batchRvtConfig, info) for info in supportedRevitFileList]):
+        return True
+
     if not aborted:
         if batchRvtConfig.ExecutePreProcessingScript:
             aborted = ExecutePreProcessingScript(batchRvtConfig, Output)
@@ -439,6 +463,10 @@ def RunBatchRevitTasks(batchRvtConfig):
         supportedRevitFileList = GetSupportedRevitFiles(batchRvtConfig)
         if supportedRevitFileList is None:
             aborted = True
+
+    # Preprocessing can rewrite the list. Recheck before launching any Revit.
+    if not aborted:
+        aborted = not ValidateSessionVersions([GetRevitVersionForRevitFileSession(batchRvtConfig, info) for info in supportedRevitFileList])
 
     if not aborted:
         supportedCount = len(supportedRevitFileList)
