@@ -1,13 +1,14 @@
 # Revit Batch Processor -- GPL-3.0-or-later.
-# Applies a release tag (vX.Y.Z or vX.Y.Z-beta) to the installer script and
+# Applies a release tag (vX.Y.Z or vX.Y.Z-beta, lowercase v) to the installer script and
 # GlobalAssemblyInfo.cs, and writes the numeric version to $GITHUB_OUTPUT.
 # Used by build_msi.yml (build of the tag, and version PR against master).
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$Tag)
 $ErrorActionPreference = 'Stop'
 
-if ($Tag -notmatch '^v?\d+\.\d+\.\d+(-beta)?$') { throw "Unexpected release tag format: $Tag" }
-$version = ($Tag -replace '-beta', '') -replace 'v', ''
+# The leading "v" is required: the uploaded installer name is built from the raw tag.
+if ($Tag -cnotmatch '^v\d+\.\d+\.\d+(-beta)?$') { throw "Unexpected release tag format (expected vX.Y.Z or vX.Y.Z-beta): $Tag" }
+$version = ($Tag -replace '-beta', '') -replace '^v', ''
 Write-Host "Version number from tag $Tag is $version"
 
 $iss = 'Setup/RevitBatchProcessor.iss'

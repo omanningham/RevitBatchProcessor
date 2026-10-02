@@ -34,9 +34,16 @@ jobs:
           compare=$(gh api "repos/$GH_REPO/compare/master...$owner:master")
           ahead=$(jq -r '.ahead_by' <<<"$compare")
           echo "Upstream commits not in master: $ahead"
-          if [ "$ahead" = "0" ]; then exit 0; fi
+          existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty' 2>/dev/null || true)
+          if [ "$ahead" = "0" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "Plus aucun commit upstream absent de \`master\` : fermeture automatique."
+            fi
+            exit 0
+          fi
 
-          head_sha=$(jq -r '.commits[-1].sha' <<<"$compare")
+          # Real upstream head: the compare response lists at most 250 commits.
+          head_sha=$(gh api "repos/$UPSTREAM/commits/master" --jq '.sha')
           release=$(gh api "repos/$UPSTREAM/releases/latest" --jq '.tag_name + " (" + .published_at[0:10] + ")"' || echo "aucune")
           commits=$(jq -r --arg u "$UPSTREAM" '.commits[] | "- [`\(.sha[0:7])`](https://github.com/\($u)/commit/\(.sha)) \(.commit.message | split("\n")[0])"' <<<"$compare")
           marker="upstream-sha: $head_sha"
@@ -49,7 +56,6 @@ jobs:
 
           gh label create upstream-sync --color 5319e7 --description "Changements à intégrer depuis bvn-architecture" --force >/dev/null
 
-          existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty')
           if [ -z "$existing" ]; then
             gh issue create --title "Upstream : $ahead commit(s) à examiner" --label upstream-sync --body "$body"
             exit 0

@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+from urllib.parse import unquote
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 ARCHIVE_DIR = "BatchRvtUtil/Scripts/Britton modified/"
@@ -52,7 +53,9 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 
 
 def slug(text):
-    # GitHub heading anchors: lowercase, drop punctuation, spaces to hyphens.
+    # GitHub heading anchors: link text only, lowercase, drop punctuation,
+    # spaces to hyphens.
+    text = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"`|\*\*|__", "", text).strip().lower()
     text = re.sub(r"[^\w\- ]", "", text)
     return text.replace(" ", "-")
@@ -88,6 +91,7 @@ def check_links():
                 if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.I):
                     continue  # http:, https:, mailto:, ...
                 file_part, _, anchor = target.partition("#")
+                file_part, anchor = unquote(file_part), unquote(anchor)
                 resolved = md if not file_part else os.path.normpath(
                     os.path.join(os.path.dirname(md), file_part)).replace("\\", "/")
                 if not os.path.exists(os.path.join(ROOT, resolved)):

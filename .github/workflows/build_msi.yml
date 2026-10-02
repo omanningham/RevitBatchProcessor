@@ -5,11 +5,8 @@ on:
     types:
       [released]
 
-# Never run two releases at once; never cancel a release in progress.
-concurrency:
-  group: release
-  cancel-in-progress: false
-
+# No concurrency group on purpose: GitHub keeps only one pending run per group
+# and cancels the others, which would leave a release without its installer.
 permissions:
   contents: read
 
@@ -58,6 +55,7 @@ jobs:
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: Setup\Output\RevitBatchProcessorSetup_${{github.event.release.tag_name}}.exe
+          fail_on_unmatched_files: true
 
   # Version bump PR against master: README, installer script and assembly version.
   # Requires "Allow GitHub Actions to create and approve pull requests" in the

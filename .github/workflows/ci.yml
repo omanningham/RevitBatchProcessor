@@ -33,7 +33,9 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            base="${{ github.event.pull_request.base.sha }}"
+            # HEAD is GitHub's merge commit; its first parent is the master tip
+            # it was built on, so the diff contains only this PR's changes.
+            base="HEAD^1"
           elif [ "${{ github.event_name }}" = "push" ] && ! echo "${{ github.event.before }}" | grep -q '^0*$'; then
             base="${{ github.event.before }}"
           else
@@ -59,8 +61,19 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # Before the solution restore, which would otherwise rewrite a stale lock file.
+      - name: Locked restore of the Revit 2025-2027 addins
+        run: |
+          foreach ($year in 2025..2027) {
+            dotnet restore "BatchRvtAddin$year/BatchRvtAddin$year.csproj" --locked-mode -p:Platform=x64
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+
       - name: Restore NuGet packages
         run: nuget restore "RevitBatchProcessor.sln"
+
+      - name: Lock files unchanged by the restore
+        run: git diff --exit-code -- '*packages.lock.json'
 
       # Same command as build_msi.yml. On this disposable runner the legacy addin
       # post-build events copy to the runner profile only.
@@ -73,29 +86,3 @@ jobs:
       - name: Verify installer sources exist
         shell: pwsh
         run: ./.github/scripts/verify_installer_sources.ps1
-
-  modern-addins:
-    name: Addin ${{ matrix.year }} (.NET 10, locked restore)
-    runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        year: [2025, 2026, 2027]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
-
-      - uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: '10.0.x'
-
-      # Legacy (packages.config) projects referenced by the addin, as in scripts/BuildNet10Pilot.ps1.
-      - name: Restore legacy packages
-        run: nuget restore "RevitBatchProcessor.sln"
-
-      - name: Restore (locked mode)
-        run: dotnet restore "BatchRvtAddin${{ matrix.year }}/BatchRvtAddin${{ matrix.year }}.csproj" --locked-mode -p:Platform=x64
-
-      - name: Build without deployment
-        run: dotnet build "BatchRvtAddin${{ matrix.year }}/BatchRvtAddin${{ matrix.year }}.csproj" --no-restore -c Release -p:Platform=x64 -p:DeployAddinOnBuild=false -p:PostBuildEvent=
