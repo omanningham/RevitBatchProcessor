@@ -149,7 +149,7 @@ Si l'environnement manque, indiquer précisément ce qui a été vérifié et ce
 - Dans le compte rendu, indiquer les fichiers modifiés, la raison, les validations exécutées et les limitations restantes.
 - Mettre à jour ce guide lorsque les commandes, projets, runtimes ou tests changent ; garder les trois points d'entrée courts et cohérents.
 
-## Parcours .NET 10 pilote
+## Parcours .NET 10
 
 Les addins 2025–2027 ciblent désormais `net10.0-windows`, x64, IronPython et
 StdLib 3.4.2. Les anciennes mises à jour 2025/2026 sous .NET 8 sont exclues.
@@ -159,8 +159,10 @@ GUI, console, pré/post-traitement et anciens addins gardent leurs moteurs histo
 L’hôte partagé choisit la StdLib par `Engine.LanguageVersion.Major` : ZIP embarqué
 pour Python 2, dossier `lib` obligatoire pour Python 3. Les projets partagés restent
 .NET Framework 4.8 et sont validés hors Revit sous .NET 10 sans séparation nouvelle.
+Le mainteneur a qualifié ce parcours dans Revit 2025.5, 2026.5 et 2027 le
+2 octobre 2026 ; Dynamo et le cloud restent non qualifiés.
 
-Utiliser [le runbook pilote](net10-pilot.md) et `scripts/BuildNet10Pilot.ps1` pour
+Utiliser [le runbook .NET 10](net10-pilot.md) et `scripts/BuildNet10Pilot.ps1` pour
 une construction isolée sans déploiement, avec verrous, probes et empreintes.
 Les tâches modernes exigent une qualification utilisateur Python 3 ; le pré/post
 reste Python 2. Refus des lots mixtes avant prétraitement et contrôle du

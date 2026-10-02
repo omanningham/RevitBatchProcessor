@@ -34,7 +34,10 @@ logs et ne sont pas masqués. Les DLL moteur/DLR candidates restent cohérentes.
 d’empreinte ou de chemin. Aucun appel à `DeployAddin.bat`, installateur ou Revit.
 Les changements préexistants README/lanceurs et les documents locaux sont préservés.
 
-## Éléments non qualifiés
+## Éléments non qualifiés au 30 septembre 2026
+
+Les sessions Revit et l’orchestration réelle ont depuis été qualifiées : voir
+[Qualification Revit du 2 octobre 2026](#qualification-revit-du-2-octobre-2026).
 
 - Sessions Revit 2025.5 build 25.5.0.57, 2026.5 et 2027 : aucun essai dans Revit.
 - Orchestration réelle du monitor, pipes, progression, dialogues, fermeture et
@@ -48,8 +51,16 @@ Les changements préexistants README/lanceurs et les documents locaux sont prés
   modification automatique d’un original/configuration utilisateur.
 - Dynamo et cloud : inchangés, non qualifiés.
 
-Le package reste un **candidat pilote**, pas une release validée pour production.
-Consulter [le runbook](net10-pilot.md) pour déploiement explicite et retour arrière.
+À cette date, le package était un candidat pilote. Consulter
+[le runbook](net10-pilot.md) pour déploiement explicite et retour arrière.
+
+## Qualification Revit du 2 octobre 2026
+
+Le mainteneur a testé les addins .NET 10 dans Revit 2025.5, 2026.5 et 2027 :
+fonctionnement conforme dans les trois versions. La validation .NET 10 de ces
+versions est considérée comme terminée ; le package n’est plus un candidat pilote.
+Les builds Revit exacts et le détail des scénarios ne sont pas consignés ici.
+Dynamo et le cloud restent non qualifiés.
 
 ## Corrections après revue du commit 91935f7
 

@@ -1,6 +1,8 @@
-# Pilote RBP : Revit 2025.5 / 2026.5 / 2027
+# RBP .NET 10 : Revit 2025.5 / 2026.5 / 2027
 
-Ce pilote utilise .NET 10 et IronPython 3.4.2 pour les tâches Revit 2025–2027.
+Ce parcours utilise .NET 10 et IronPython 3.4.2 pour les tâches Revit 2025–2027.
+Il a été qualifié dans Revit 2025.5, 2026.5 et 2027 le 2 octobre 2026
+(voir [Qualification Revit](#qualification-revit)).
 Revit 2025 avant 2025.5 et Revit 2026 avant 2026.5 sont refusés. Le superviseur,
 la GUI et le pré/post-traitement restent .NET Framework 4.8 et Python 2.
 Les lots traversant les familles 2015–2024 et 2025–2027 sont refusés avant
@@ -37,13 +39,19 @@ prétraitement ; une liste explicitement fournie en mémoire reste prioritaire.
 `DeployAddinOnBuild` vaut `false` par défaut pour 2025–2027. Les builds historiques
 du script utilisent `/p:PostBuildEvent=`. Aucune commande de déploiement ni
 installation n’est exécutée. Le workflow MSI historique vérifie désormais 2027,
-mais l’installateur BVN ne constitue pas le déploiement de ce pilote.
+mais l’installateur BVN ne constitue pas le déploiement de ce parcours.
 
 Le ZIP contient `GUI`, `2025`, `2026`, `2027`, les manifests, les verrous NuGet,
 les logs, le commit de base, le patch local et `SHA256.json`. Les archives
 « Britton modified » sont exclues. Il n’installe aucun addin 2015–2024.
 
-## Qualification Revit restant obligatoire
+## Qualification Revit
+
+Le mainteneur a testé les addins .NET 10 dans Revit 2025.5, 2026.5 et 2027
+le 2 octobre 2026 : fonctionnement conforme dans les trois versions. La
+validation .NET 10 de ces versions est considérée comme terminée. Les builds
+Revit exacts et le détail des scénarios ne sont pas consignés ici. Dynamo et
+le cloud ne sont pas couverts par cette qualification.
 
 Les probes testent le moteur, les classes, une interface .NET, TypeDescriptor,
 les imports StdLib, les assemblies RBP historiques, la syntaxe de tous les scripts
@@ -53,7 +61,9 @@ la priorité de l’entrée en mémoire et le refus d’un lot devenu mixte apr�
 Ils ne testent pas l’orchestration complète, les pipes, les dialogues ni les API Revit.
 Une compilation ne qualifie aucune version de Revit.
 
-Après approbation explicite du déploiement pilote :
+Requalifier selon la procédure ci-dessous après une nouvelle mise à jour Revit
+ou une modification de l’hôte, du moteur ou des addins 2025–2027.
+Après approbation explicite du déploiement :
 
 1. Fermer Revit, sauvegarder les installations RBP, manifests, scripts et configs.
 2. Vérifier les installations concurrentes utilisateur/machine. Installer uniquement
@@ -97,4 +107,5 @@ progressive ; ils ne prouvent pas le chargement dans une session Revit.
 
 Les adaptations Britton sont préservées ; deux clauses `except` ont seulement été
 rendues compatibles avec Python 3. Un test de flux a révélé et corrigé l’inversion
-stdout/stderr dans `RestoreScriptOutput`. Aucun essai Revit ni déploiement effectué.
+stdout/stderr dans `RestoreScriptOutput`. Aucun essai Revit ni déploiement n’avait
+été effectué à cette étape ; voir [Qualification Revit](#qualification-revit).
