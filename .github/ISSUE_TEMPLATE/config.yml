@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Signaler une vulnérabilité
+    url: https://github.com/omanningham/RevitBatchProcessor/security/advisories/new
+    about: Signalement privé ; ne pas ouvrir d'issue publique.
+  - name: Revit Batch Processor original (bvn-architecture)
+    url: https://github.com/bvn-architecture/RevitBatchProcessor
+    about: Projet upstream de ce fork.

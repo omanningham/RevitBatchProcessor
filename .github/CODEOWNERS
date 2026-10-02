@@ -1,0 +1,3 @@
+# Default reviewer. Do not enable "Require review from Code Owners" while there is
+# a single maintainer: GitHub does not let an author approve their own PR.
+* @omanningham
