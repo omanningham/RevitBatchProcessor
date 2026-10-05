@@ -42,6 +42,23 @@ function ConvertFrom-AssetDigest([string]$Digest) {
     return $null
 }
 
+# Content of a repository file as committed at a tag (git show), for a manual run whose
+# checkout may be ahead of the release it describes.
+function Get-FileAtTag {
+    param(
+        [Parameter(Mandatory=$true)][string]$RepoRoot,
+        [Parameter(Mandatory=$true)][string]$Tag,
+        [Parameter(Mandatory=$true)][string]$RelativePath
+    )
+    # Windows PowerShell turns native stderr into a terminating error under 'Stop'.
+    $ErrorActionPreference = 'Continue'
+    $lines = & git -C $RepoRoot show "$($Tag):$RelativePath" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "$RelativePath not found at tag $Tag in $RepoRoot (fetch the tags with 'git fetch --tags', or pass -IssPath)"
+    }
+    return (@($lines) -join "`n")
+}
+
 # Installer identity as Inno Setup registers it under HKCU\...\Uninstall\<AppId>_is1:
 # ProductCode (key name), DisplayName (UninstallDisplayName, else AppVerName) and
 # Publisher. {#Define} references are expanded; AppVersion and AppDisplayVersion come

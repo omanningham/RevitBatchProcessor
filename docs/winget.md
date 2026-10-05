@@ -32,9 +32,10 @@ le nom affiché, et propose la mise à jour vers la version Britton.
 
 - Release `vX.Y.Z-brt.N` : télécharger ses trois fichiers `.yaml` dans un même dossier.
   Le workflow de release les y a ajoutés, avec l'empreinte de l'installeur compilé.
-- Sinon (release sans manifeste joint), le générer depuis la racine du dépôt. Le script
-  lit l'empreinte SHA256 publiée par GitHub pour l'installeur de la release et ne le
-  télécharge que si GitHub n'en fournit pas :
+- Sinon (release sans manifeste joint), le générer avec le script du dépôt. Il lit le
+  script Inno tel qu'il était au tag (le tag doit exister localement : `git fetch --tags`),
+  puis l'empreinte SHA256 publiée par GitHub pour l'installeur de la release, et ne
+  télécharge l'installeur que si GitHub n'en fournit pas :
 
 ```powershell
 .\.github\scripts\new_winget_manifest.ps1 -Tag v1.13.0-brt.1

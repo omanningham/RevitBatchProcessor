@@ -5,9 +5,10 @@
 #
 # Versions come from the tag and the installer identity (ProductCode, names, publisher)
 # from the Inno script, through release_metadata.ps1, so the manifest matches what the
-# installer registers. The installer hash comes from -InstallerPath (release workflow)
-# or, for a manual run, from the digest GitHub publishes for the release asset, with a
-# download of the installer as fallback.
+# installer registers. With -InstallerPath (release workflow, checkout at the tag) the
+# Inno script and the hash come from the checkout and that file. In a manual run the
+# Inno script is read as committed at the tag, and the hash is the digest GitHub
+# publishes for the release asset, with a download of the installer as fallback.
 # Output: <OutputDir>/Britton.RevitBatchProcessor/<X.Y.Z.N>/*.yaml, the folder layout
 # expected by `winget validate --manifest` and Add-WinGetManifest.
 [CmdletBinding()]
@@ -23,11 +24,34 @@ $ErrorActionPreference = 'Stop'
 
 # GITHUB_REPOSITORY is set in workflows; the fork is the default for a manual run.
 if (-not $Repository) { $Repository = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { 'omanningham/RevitBatchProcessor' } }
-if (-not $IssPath) { $IssPath = Join-Path (Split-Path (Split-Path $PSScriptRoot)) 'Setup/RevitBatchProcessor.iss' }
 
 $release = ConvertFrom-ReleaseTag -Tag $Tag -BrittonOnly
-$installer = Get-InstallerIdentity -IssPath $IssPath -Release $release
+if ($IssPath) {
+    $installer = Get-InstallerIdentity -IssPath $IssPath -Release $release
+} else {
+    $repoRoot = Split-Path (Split-Path $PSScriptRoot)
+    $issRelative = 'Setup/RevitBatchProcessor.iss'
+    if ($InstallerPath) {
+        # Release workflow: the checkout is the tag being built.
+        $installer = Get-InstallerIdentity -IssPath (Join-Path $repoRoot $issRelative) -Release $release
+    } else {
+        # Manual run: describe the installer as built at the tag, not the current checkout.
+        $issAtTag = Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName())
+        try {
+            [IO.File]::WriteAllText($issAtTag, (Get-FileAtTag -RepoRoot $repoRoot -Tag $Tag -RelativePath $issRelative))
+            $installer = Get-InstallerIdentity -IssPath $issAtTag -Release $release
+        } finally {
+            Remove-Item -LiteralPath $issAtTag -ErrorAction SilentlyContinue
+        }
+    }
+}
 $version = $release.Version
+
+# Names come from the Inno script: single-quote them so ": ", " #", "[" or "'" stay literal.
+function ConvertTo-YamlQuoted([string]$Value) { "'" + $Value.Replace("'", "''") + "'" }
+$publisherYaml = ConvertTo-YamlQuoted $installer.Publisher
+$packageNameYaml = ConvertTo-YamlQuoted $installer.PackageName
+$displayNameYaml = ConvertTo-YamlQuoted $installer.DisplayName
 
 $packageId = 'Britton.RevitBatchProcessor'
 $repoUrl = "https://github.com/$Repository"
@@ -77,8 +101,8 @@ $header
 PackageIdentifier: $packageId
 PackageVersion: $version
 PackageLocale: fr-CA
-Publisher: $($installer.Publisher)
-PackageName: $($installer.PackageName)
+Publisher: $publisherYaml
+PackageName: $packageNameYaml
 PackageUrl: $repoUrl
 License: GPL-3.0-or-later
 LicenseUrl: $repoUrl/blob/master/LICENSE.txt
@@ -115,8 +139,8 @@ InstallModes:
 UpgradeBehavior: install
 ProductCode: '$($installer.ProductCode)'
 AppsAndFeaturesEntries:
-- DisplayName: $($installer.DisplayName)
-  Publisher: $($installer.Publisher)
+- DisplayName: $displayNameYaml
+  Publisher: $publisherYaml
   DisplayVersion: $version
   ProductCode: '$($installer.ProductCode)'
 Installers:

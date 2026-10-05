@@ -82,6 +82,19 @@ try {
     Set-Content -Path $fixture -Value @('[Setup]', 'AppId=X', 'AppName={#Nope}', 'AppVerName=A 1', 'AppPublisher=P')
     Assert-Throws { Get-InstallerIdentity -IssPath $fixture -Release $brt } 'Undefined Inno define \{#Nope\}' 'unknown define'
 
+    # --- Get-FileAtTag: a file as committed at a tag, not as in the working tree ---
+    $gitRepo = Join-Path $temp ('git-' + [IO.Path]::GetRandomFileName())
+    New-Item -ItemType Directory -Path (Join-Path $gitRepo 'Setup') | Out-Null
+    $tracked = Join-Path $gitRepo 'Setup/RevitBatchProcessor.iss'
+    [IO.File]::WriteAllText($tracked, "AppName=At tag`n")
+    & git -C $gitRepo init -q
+    & git -C $gitRepo -c core.autocrlf=false add -A
+    & git -C $gitRepo -c user.name=test -c user.email=test@example.invalid commit -q -m 'release'
+    & git -C $gitRepo tag v9.9.9-brt.1
+    [IO.File]::WriteAllText($tracked, "AppName=Later edit`n")
+    Assert-Equal 'AppName=At tag' (Get-FileAtTag -RepoRoot $gitRepo -Tag 'v9.9.9-brt.1' -RelativePath 'Setup/RevitBatchProcessor.iss') 'file content at the tag'
+    Assert-Throws { Get-FileAtTag -RepoRoot $gitRepo -Tag 'v9.9.9-brt.2' -RelativePath 'Setup/RevitBatchProcessor.iss' } 'not found at tag v9\.9\.9-brt\.2' 'unknown tag'
+
     # --- set_version.ps1 on copies of the installer script and GlobalAssemblyInfo.cs ---
     foreach ($case in @(
         @{ Tag = 'v1.14.0-brt.3'; Version = '1.14.0.3'; Display = '1.14.0-brt.3'; Assembly = '1.14.0.0'; Britton = 'true' },
@@ -172,15 +185,15 @@ try {
         foreach ($expected in @(
             'PackageVersion: 1.14.0.3',
             "ProductCode: '{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1'",
-            '- DisplayName: Revit Batch Processor (Britton) 1.14.0-brt.3',
-            '  Publisher: Britton',
+            "- DisplayName: 'Revit Batch Processor (Britton) 1.14.0-brt.3'",
+            "  Publisher: 'Britton'",
             '  DisplayVersion: 1.14.0.3',
             "  InstallerUrl: $url",
             "  InstallerSha256: $dummyHash",
             'ManifestVersion: 1.10.0')) {
             Assert-Equal $true ($installer -contains $expected) "installer.yaml ($($case.Repo)) contains '$expected'"
         }
-        foreach ($expected in @('PackageName: Revit Batch Processor (Britton)', 'Publisher: Britton', "PackageUrl: https://github.com/$($case.Repo)", 'ManifestVersion: 1.10.0')) {
+        foreach ($expected in @("PackageName: 'Revit Batch Processor (Britton)'", "Publisher: 'Britton'", "PackageUrl: https://github.com/$($case.Repo)", 'ManifestVersion: 1.10.0')) {
             Assert-Equal $true ($locale -contains $expected) "locale.yaml ($($case.Repo)) contains '$expected'"
         }
         Assert-Equal $true ($versionFile -contains 'ManifestVersion: 1.10.0') 'version.yaml schema'
@@ -190,6 +203,19 @@ try {
         Assert-Equal $true ($manifestDir -like 'manifest_dir=*' -and $manifestDir -notlike '*\*') 'manifest_dir uses forward slashes'
     }
     Assert-Throws { & (Join-Path $scripts 'new_winget_manifest.ps1') -Tag 'v1.14.0' -InstallerPath $dummy -OutputDir (Join-Path $temp 'x') } 'Not a Britton release tag' 'manifest rejects upstream tag'
+
+    # Names from the Inno script are YAML-quoted, so ": ", " #", "[" or "'" stay literal.
+    $special = Join-Path $temp 'special.iss'
+    Set-Content -Path $special -Value @('[Setup]', 'AppId={{11111111-2222-3333-4444-555555555555}', "AppName=[RBP] O'Brien: test #1", "AppVerName=[RBP] O'Brien: test #1 {#AppDisplayVersion}", 'AppPublisher=Britton: Test')
+    $out = Join-Path $temp ('manifest-' + [IO.Path]::GetRandomFileName())
+    & (Join-Path $scripts 'new_winget_manifest.ps1') -Tag 'v1.14.0-brt.3' -InstallerPath $dummy -OutputDir $out -IssPath $special 6>$null | Out-Null
+    $dir = Join-Path $out 'Britton.RevitBatchProcessor/1.14.0.3'
+    $installer = @(Get-Content -Path (Join-Path $dir 'Britton.RevitBatchProcessor.installer.yaml'))
+    $locale = @(Get-Content -Path (Join-Path $dir 'Britton.RevitBatchProcessor.locale.fr-CA.yaml') -Encoding UTF8)
+    Assert-Equal $true ($installer -contains "- DisplayName: '[RBP] O''Brien: test #1 1.14.0-brt.3'") 'special DisplayName quoted'
+    Assert-Equal $true ($installer -contains "  Publisher: 'Britton: Test'") 'special installer Publisher quoted'
+    Assert-Equal $true ($locale -contains "PackageName: '[RBP] O''Brien: test #1'") 'special PackageName quoted'
+    Assert-Equal $true ($locale -contains "Publisher: 'Britton: Test'") 'special locale Publisher quoted'
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
