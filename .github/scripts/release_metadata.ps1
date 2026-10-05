@@ -41,3 +41,41 @@ function ConvertFrom-AssetDigest([string]$Digest) {
     if ($Digest -match '^sha256:([0-9a-fA-F]{64})$') { return $Matches[1].ToUpperInvariant() }
     return $null
 }
+
+# Installer identity as Inno Setup registers it under HKCU\...\Uninstall\<AppId>_is1:
+# ProductCode (key name), DisplayName (UninstallDisplayName, else AppVerName) and
+# Publisher. {#Define} references are expanded; AppVersion and AppDisplayVersion come
+# from $Release, the values set_version.ps1 writes for the same tag.
+function Get-InstallerIdentity {
+    param(
+        [Parameter(Mandatory=$true)][string]$IssPath,
+        [Parameter(Mandatory=$true)]$Release
+    )
+    $defines = @{ AppVersion = $Release.Version; AppDisplayVersion = $Release.DisplayVersion }
+    $setup = @{}
+    foreach ($line in [IO.File]::ReadAllLines($IssPath)) {
+        if ($line -match '^\s*#define\s+(\w+)\s+"([^"]*)"') {
+            if (-not $defines.ContainsKey($Matches[1])) { $defines[$Matches[1]] = $Matches[2] }
+        } elseif ($line -match '^\s*(AppId|AppName|AppVerName|AppPublisher|UninstallDisplayName)\s*=\s*(.*?)\s*$') {
+            $setup[$Matches[1]] = $Matches[2]
+        }
+    }
+    foreach ($name in 'AppId', 'AppName', 'AppVerName', 'AppPublisher') {
+        if (-not $setup[$name]) { throw "$name not found in $IssPath" }
+    }
+    $expanded = @{}
+    foreach ($name in @($setup.Keys)) {
+        $value = $setup[$name]
+        foreach ($define in $defines.Keys) { $value = $value.Replace("{#$define}", $defines[$define]) }
+        if ($value -match '\{#(\w+)\}') { throw "Undefined Inno define {#$($Matches[1])} in $name of $IssPath" }
+        # "{{" is Inno's escape for a literal "{" (AppId={{GUID}).
+        $expanded[$name] = $value.Replace('{{', '{')
+    }
+    $displayName = if ($expanded['UninstallDisplayName']) { $expanded['UninstallDisplayName'] } else { $expanded['AppVerName'] }
+    [pscustomobject]@{
+        ProductCode = "$($expanded['AppId'])_is1"
+        PackageName = $expanded['AppName']
+        DisplayName = $displayName
+        Publisher   = $expanded['AppPublisher']
+    }
+}

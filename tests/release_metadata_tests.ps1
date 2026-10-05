@@ -52,6 +52,35 @@ try {
     Assert-Equal $null (ConvertFrom-AssetDigest '') 'empty digest'
     Assert-Equal $null (ConvertFrom-AssetDigest "sha512:$hex$hex") 'other algorithm'
     Assert-Equal $null (ConvertFrom-AssetDigest 'sha256:1234') 'short digest'
+
+    # --- Get-InstallerIdentity ---
+    $brt = ConvertFrom-ReleaseTag -Tag 'v1.14.0-brt.3'
+    $id = Get-InstallerIdentity -IssPath (Join-Path $repoRoot 'Setup/RevitBatchProcessor.iss') -Release $brt
+    Assert-Equal '{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1' $id.ProductCode 'real iss ProductCode'
+    Assert-Equal 'Revit Batch Processor (Britton)' $id.PackageName 'real iss PackageName'
+    Assert-Equal 'Revit Batch Processor (Britton) 1.14.0-brt.3' $id.DisplayName 'real iss DisplayName follows the tag'
+    Assert-Equal 'Britton' $id.Publisher 'real iss Publisher'
+
+    $fixture = Join-Path $temp 'fixture.iss'
+    Set-Content -Path $fixture -Value @(
+        '#define AppName "Test App"',
+        '#define AppVersion "0.0.0.0"',
+        '[Setup]',
+        'AppId = {{11111111-2222-3333-4444-555555555555}',
+        'AppName={#AppName}',
+        'AppVerName={#AppName} {#AppDisplayVersion}',
+        'AppPublisher = Test Publisher ',
+        'UninstallDisplayName={#AppName} v{#AppVersion}'
+    )
+    $id = Get-InstallerIdentity -IssPath $fixture -Release $brt
+    Assert-Equal '{11111111-2222-3333-4444-555555555555}_is1' $id.ProductCode 'fixture ProductCode with spaces and {{'
+    Assert-Equal 'Test Publisher' $id.Publisher 'fixture Publisher trimmed'
+    Assert-Equal 'Test App v1.14.0.3' $id.DisplayName 'UninstallDisplayName wins, tag AppVersion wins over the file'
+
+    Set-Content -Path $fixture -Value @('[Setup]', 'AppId=X', 'AppName=A', 'AppVerName=A 1')
+    Assert-Throws { Get-InstallerIdentity -IssPath $fixture -Release $brt } 'AppPublisher not found' 'missing AppPublisher'
+    Set-Content -Path $fixture -Value @('[Setup]', 'AppId=X', 'AppName={#Nope}', 'AppVerName=A 1', 'AppPublisher=P')
+    Assert-Throws { Get-InstallerIdentity -IssPath $fixture -Release $brt } 'Undefined Inno define \{#Nope\}' 'unknown define'
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
