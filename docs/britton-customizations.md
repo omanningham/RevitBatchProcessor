@@ -2,7 +2,8 @@
 
 Ce document décrit les adaptations Britton intégrées aux sources de Revit Batch
 Processor et les contrôles à effectuer après une mise à jour du dépôt officiel.
-Il s'adresse aux mainteneurs et aux agents de programmation.
+Il s'adresse aux mainteneurs et aux agents de programmation. Les raisons des choix
+et les options écartées sont consignées dans le [journal des décisions](journal-decisions.md).
 
 État de référence : 30 septembre 2026, commit du fork `2a47aa6`.
 L'analyse porte sur le code source ; elle ne certifie pas le comportement dans Revit

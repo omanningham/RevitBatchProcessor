@@ -214,6 +214,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
 - [Distribution Britton par winget](winget.md)
+- [Journal des décisions du fork](journal-decisions.md) : y consigner tout nouveau choix délibéré
 - [CI des PR](../.github/workflows/ci.yml)
 - [Instructions Codex et agents compatibles](../AGENTS.md)
 - [Instructions Claude Code](../CLAUDE.md)
