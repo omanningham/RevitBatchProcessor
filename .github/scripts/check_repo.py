@@ -5,6 +5,7 @@ Checks:
   scripts  every active BatchRvtUtil/Scripts/*.py is listed in BatchRvtUtil.csproj,
            and every listed Scripts\\*.py exists.
   links    relative Markdown links (and their #anchors) resolve.
+  readmes  README.fr.md keeps the heading structure and release links of README.md.
   headers  .cs/.py files added since --base carry a GPL license header.
 
 Usage: python .github/scripts/check_repo.py [--base <git-ref>]
@@ -101,6 +102,39 @@ def check_links():
     return errors
 
 
+README_PAIR = ("README.md", "README.fr.md")
+RELEASE_URL = re.compile(r"https://github\.com/[^)\s]+/releases/(?:download|tag)/[^)\s]+")
+
+
+def readme_outline(path):
+    # Heading levels (outside code fences) and release links, which must match
+    # between README.md and its translation.
+    levels, in_fence = [], False
+    for line in read(path).splitlines():
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
+        m = None if in_fence else re.match(r"^(#{1,6})\s", line)
+        if m:
+            levels.append(len(m.group(1)))
+    return levels, sorted(RELEASE_URL.findall(read(path)))
+
+
+def check_readmes():
+    source, translation = README_PAIR
+    if not os.path.exists(os.path.join(ROOT, translation)):
+        return []
+    errors = []
+    src_levels, src_releases = readme_outline(source)
+    tr_levels, tr_releases = readme_outline(translation)
+    if src_levels != tr_levels:
+        errors.append("%s: heading structure differs from %s (%d vs %d headings); port the change"
+                      % (translation, source, len(tr_levels), len(src_levels)))
+    if src_releases != tr_releases:
+        errors.append("%s: release links differ from %s" % (translation, source))
+    return errors
+
+
 def check_headers(base):
     if not base:
         return []
@@ -121,7 +155,7 @@ def main():
     args = parser.parse_args()
     failed = False
     for name, errors in (("scripts", check_scripts()), ("links", check_links()),
-                         ("headers", check_headers(args.base))):
+                         ("readmes", check_readmes()), ("headers", check_headers(args.base))):
         for error in errors:
             print("::error::[%s] %s" % (name, error))
         print("%s: %s" % (name, "FAIL (%d)" % len(errors) if errors else "OK"))

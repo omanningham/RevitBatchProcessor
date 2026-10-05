@@ -129,7 +129,7 @@ Ne pas annoncer « tests réussis » sur la seule base d'un `dotnet test` sans t
 
 La CI (`.github/workflows/ci.yml`) exécute `git diff --check`,
 `python .github/scripts/check_repo.py` (scripts inscrits dans `BatchRvtUtil.csproj`,
-liens Markdown, en-têtes GPL des nouveaux fichiers), `tests/release_metadata_tests.ps1`
+liens Markdown, structure de `README.fr.md` identique à `README.md`, en-têtes GPL des nouveaux fichiers), `tests/release_metadata_tests.ps1`
 (versions tirées du tag, identité de l'installeur, manifeste winget), le build de la solution et
 celui des addins 2025–2027. Le script de vérification peut être lancé localement.
 Elle exécute ensuite `EngineProbe` sur chaque sortie 2025–2027 (IronPython 3.4.2 sous
@@ -164,6 +164,23 @@ Si l'environnement manque, indiquer précisément ce qui a été vérifié et ce
 - Dans le compte rendu, indiquer les fichiers modifiés, la raison, les validations exécutées et les limitations restantes.
 - Mettre à jour ce guide lorsque les commandes, projets, runtimes ou tests changent ; garder les trois points d'entrée courts et cohérents.
 
+## Langues de la documentation
+
+Le fork limite ses écarts avec le dépôt officiel pour faciliter les fusions :
+
+| Fichiers | Langue |
+| --- | --- |
+| Fichiers issus du dépôt officiel (`README.md`, `docs/SampleScripts.md`, `docs/ui.md`, code, commentaires, interface) | Anglais ; modifications Britton minimales et regroupées. |
+| Documents créés par Britton (ce guide, `britton-customizations.md`, `winget.md`, `net10-pilot.md`) | Français. |
+| Traductions de fichiers officiels | Fichier voisin `*.fr.md`, par exemple `README.fr.md`. |
+
+Toute modification de `README.md` doit être reportée dans `README.fr.md`.
+`check_repo.py` vérifie que les deux fichiers ont la même structure de titres et
+les mêmes liens de release ; `update_readme.py` met à jour les versions des deux.
+Lors d'une fusion du dépôt officiel, intégrer d'abord les changements dans
+`README.md`, puis les traduire dans `README.fr.md`. Ne pas traduire l'interface
+WinForms : les `.Designer.cs` et `.resx` proviennent du dépôt officiel.
+
 ## Parcours .NET 10
 
 Les addins 2025–2027 ciblent désormais `net10.0-windows`, x64, IronPython et
@@ -192,7 +209,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 
 ## Références internes
 
-- [README et usage](../README.md) et sa [version anglaise](../README.en.md), à garder synchronisées
+- [README et usage](../README.md) et sa [traduction française](../README.fr.md)
 - [Scripts exemples](SampleScripts.md)
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)

@@ -8,7 +8,7 @@ import re
 # releases are not beta.
 VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z]+(?:\.\d+)?)?(?: beta\b)?")
 
-README_FILES = ("README.md", "README.en.md")
+README_FILES = ("README.md", "README.fr.md")
 
 
 def update_line(line, tag_without_v):
@@ -31,7 +31,7 @@ def update_readme():
 
     os.chdir(root_dir)
 
-    # README.md (French) and README.en.md (English); a missing file is skipped.
+    # README.md (English) and README.fr.md (French); a missing file is skipped.
     for readme in README_FILES:
         if not os.path.exists(readme):
             continue

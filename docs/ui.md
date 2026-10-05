@@ -2,7 +2,7 @@
 
 ![Screenshot of the Revit Batch Processor UI](../BatchRvt_Screenshot.png)
 
-The screenshot was taken with *Show Advanced Settings* unchecked. The groups marked **(advanced)** below only appear once that box is checked. Labels are quoted from the UI; CLI options are those listed in the [command-line help](../README.en.md#command-line-interface).
+The screenshot was taken with *Show Advanced Settings* unchecked. The groups marked **(advanced)** below only appear once that box is checked. Labels are quoted from the UI; CLI options are those listed in the [command-line help](../README.md#command-line-interface).
 
 TODO: swap the screenshot for a labelled version, with the advanced settings shown.
 
@@ -40,7 +40,7 @@ TODO: swap the screenshot for a labelled version, with the advanced settings sho
 
 | Control | What it does |
 | --- | --- |
-| Detach from Central | Opens a detached copy of workshared files (`--detach`). Does not apply to non-workshared files or families; see *Data safety* in the [README](../README.en.md#data-safety). |
+| Detach from Central | Opens a detached copy of workshared files (`--detach`). Does not apply to non-workshared files or families; see *Data safety* in the [README](../README.md#data-safety). |
 | Create New Local | Creates a local file from the central file (`--create_new_local`). Any existing file at the local path is deleted first. |
 | Discard Worksets | With *Detach from Central*, detaches and discards the worksets instead of preserving them. |
 | Delete Local After | With *Create New Local*, deletes the local file when processing is done. |
