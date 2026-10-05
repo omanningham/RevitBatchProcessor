@@ -81,6 +81,33 @@ try {
     Assert-Throws { Get-InstallerIdentity -IssPath $fixture -Release $brt } 'AppPublisher not found' 'missing AppPublisher'
     Set-Content -Path $fixture -Value @('[Setup]', 'AppId=X', 'AppName={#Nope}', 'AppVerName=A 1', 'AppPublisher=P')
     Assert-Throws { Get-InstallerIdentity -IssPath $fixture -Release $brt } 'Undefined Inno define \{#Nope\}' 'unknown define'
+
+    # --- set_version.ps1 on copies of the installer script and GlobalAssemblyInfo.cs ---
+    foreach ($case in @(
+        @{ Tag = 'v1.14.0-brt.3'; Version = '1.14.0.3'; Display = '1.14.0-brt.3'; Assembly = '1.14.0.0' },
+        @{ Tag = 'v1.14.0-beta';  Version = '1.14.0.0'; Display = '1.14.0-beta';  Assembly = '1.14.0.0' })) {
+        $work = Join-Path $temp ('setver-' + [IO.Path]::GetRandomFileName())
+        New-Item -ItemType Directory -Path (Join-Path $work 'Setup'), (Join-Path $work 'Common') | Out-Null
+        Copy-Item (Join-Path $repoRoot 'Setup/RevitBatchProcessor.iss') (Join-Path $work 'Setup')
+        Copy-Item (Join-Path $repoRoot 'Common/GlobalAssemblyInfo.cs') (Join-Path $work 'Common')
+        $crlfBefore = ([regex]::Matches([IO.File]::ReadAllText((Join-Path $work 'Setup/RevitBatchProcessor.iss')), "`r`n")).Count
+        $outputFile = Join-Path $work 'github_output.txt'
+        $savedOutput = $env:GITHUB_OUTPUT
+        $env:GITHUB_OUTPUT = $outputFile
+        Push-Location $work
+        try { & (Join-Path $scripts 'set_version.ps1') -Tag $case.Tag 6>$null | Out-Null }
+        finally { Pop-Location; $env:GITHUB_OUTPUT = $savedOutput }
+        $iss = [IO.File]::ReadAllText((Join-Path $work 'Setup/RevitBatchProcessor.iss'))
+        $cs = [IO.File]::ReadAllText((Join-Path $work 'Common/GlobalAssemblyInfo.cs'))
+        Assert-Equal $true $iss.Contains("#define AppVersion `"$($case.Version)`"") "$($case.Tag) iss AppVersion"
+        Assert-Equal $true $iss.Contains("#define AppDisplayVersion `"$($case.Display)`"") "$($case.Tag) iss AppDisplayVersion"
+        Assert-Equal $crlfBefore ([regex]::Matches($iss, "`r`n")).Count "$($case.Tag) iss CRLF preserved"
+        Assert-Equal $true $cs.Contains("AssemblyVersion(`"$($case.Assembly)`")") "$($case.Tag) AssemblyVersion"
+        Assert-Equal $true $cs.Contains("AssemblyFileVersion(`"$($case.Version)`")") "$($case.Tag) AssemblyFileVersion"
+        Assert-Equal $true $cs.Contains("AssemblyInformationalVersion(`"$($case.Display)`")") "$($case.Tag) InformationalVersion"
+        $outputs = @(Get-Content -Path $outputFile)
+        Assert-Equal "version=$($case.Version)" ($outputs -join '|') "$($case.Tag) GITHUB_OUTPUT has only version"
+    }
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
