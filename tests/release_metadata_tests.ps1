@@ -1,4 +1,4 @@
-# Revit Batch Processor -- GPL-3.0-or-later.
+﻿# Revit Batch Processor -- GPL-3.0-or-later.
 # Tests of .github/scripts/release_metadata.ps1, set_version.ps1 and new_winget_manifest.ps1.
 # Runs under Windows PowerShell 5.1 and PowerShell 7 (Windows or Linux), without network.
 [CmdletBinding()]
@@ -108,6 +108,49 @@ try {
         $outputs = @(Get-Content -Path $outputFile)
         Assert-Equal "version=$($case.Version)" ($outputs -join '|') "$($case.Tag) GITHUB_OUTPUT has only version"
     }
+
+    # --- new_winget_manifest.ps1 with a dummy installer, run from outside the repository ---
+    $dummy = Join-Path $temp 'dummy-installer.exe'
+    [IO.File]::WriteAllText($dummy, 'not a real installer')
+    $dummyHash = (Get-FileHash -Path $dummy -Algorithm SHA256).Hash
+    foreach ($case in @(
+        @{ Env = 'example/fork'; Repo = 'example/fork' },
+        @{ Env = $null;          Repo = 'omanningham/RevitBatchProcessor' })) {
+        $out = Join-Path $temp ('manifest-' + [IO.Path]::GetRandomFileName())
+        $outputFile = "$out.github_output"
+        $savedRepo = $env:GITHUB_REPOSITORY
+        $savedOutput = $env:GITHUB_OUTPUT
+        $env:GITHUB_REPOSITORY = $case.Env
+        $env:GITHUB_OUTPUT = $outputFile
+        Push-Location $temp
+        try { & (Join-Path $scripts 'new_winget_manifest.ps1') -Tag 'v1.14.0-brt.3' -InstallerPath $dummy -OutputDir $out 6>$null | Out-Null }
+        finally { Pop-Location; $env:GITHUB_REPOSITORY = $savedRepo; $env:GITHUB_OUTPUT = $savedOutput }
+        $dir = Join-Path $out 'Britton.RevitBatchProcessor/1.14.0.3'
+        $installer = @(Get-Content -Path (Join-Path $dir 'Britton.RevitBatchProcessor.installer.yaml'))
+        $locale = @(Get-Content -Path (Join-Path $dir 'Britton.RevitBatchProcessor.locale.fr-CA.yaml') -Encoding UTF8)
+        $versionFile = @(Get-Content -Path (Join-Path $dir 'Britton.RevitBatchProcessor.yaml'))
+        $url = "https://github.com/$($case.Repo)/releases/download/v1.14.0-brt.3/RevitBatchProcessorSetup_v1.14.0-brt.3.exe"
+        foreach ($expected in @(
+            'PackageVersion: 1.14.0.3',
+            "ProductCode: '{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1'",
+            '- DisplayName: Revit Batch Processor (Britton) 1.14.0-brt.3',
+            '  Publisher: Britton',
+            '  DisplayVersion: 1.14.0.3',
+            "  InstallerUrl: $url",
+            "  InstallerSha256: $dummyHash",
+            'ManifestVersion: 1.10.0')) {
+            Assert-Equal $true ($installer -contains $expected) "installer.yaml ($($case.Repo)) contains '$expected'"
+        }
+        foreach ($expected in @('PackageName: Revit Batch Processor (Britton)', 'Publisher: Britton', "PackageUrl: https://github.com/$($case.Repo)", 'ManifestVersion: 1.10.0')) {
+            Assert-Equal $true ($locale -contains $expected) "locale.yaml ($($case.Repo)) contains '$expected'"
+        }
+        Assert-Equal $true ($versionFile -contains 'ManifestVersion: 1.10.0') 'version.yaml schema'
+        $accentLines = @($locale | Where-Object { $_ -match 'Revit 2015 à 2027' })
+        Assert-Equal 1 $accentLines.Count 'locale.yaml keeps accents'
+        $manifestDir = @(Get-Content -Path $outputFile) -join '|'
+        Assert-Equal $true ($manifestDir -like 'manifest_dir=*' -and $manifestDir -notlike '*\*') 'manifest_dir uses forward slashes'
+    }
+    Assert-Throws { & (Join-Path $scripts 'new_winget_manifest.ps1') -Tag 'v1.14.0' -InstallerPath $dummy -OutputDir (Join-Path $temp 'x') } 'Not a Britton release tag' 'manifest rejects upstream tag'
 } finally {
     Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
