@@ -9,9 +9,9 @@ Fully automated batch processing of Revit files with your own Python or Dynamo t
 
 ## Latest version (NEW)
 
-Version 1.13.0 beta release is available, which includes support for Revit 2027. [Installer is here](https://github.com/bvn-architecture/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
+Version 1.13.0 beta release is available, which includes support for Revit 2027. [Installer is here](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
 
-See the [Releases](https://github.com/bvn-architecture/RevitBatchProcessor/releases) page for [v1.13.0 release notes](https://github.com/bvn-architecture/RevitBatchProcessor/releases/tag/v1.13.0-beta).
+See the [Releases](https://github.com/omanningham/RevitBatchProcessor/releases) page for [v1.13.0 release notes](https://github.com/omanningham/RevitBatchProcessor/releases/tag/v1.13.0-beta).
 
 ## RBP Sample Scripts
 
@@ -77,7 +77,7 @@ in `AGENTS.md`, `CLAUDE.md` and `.github/copilot-instructions.md`.
 
 ## Installer
 
-[Installer for Revit Batch Processor v1.13.0 beta](https://github.com/bvn-architecture/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
+[Installer for Revit Batch Processor v1.13.0 beta](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
 
 The Revit Batch Processor (GUI) application will appear in the Start menu after the installation.
 
@@ -167,7 +167,7 @@ The ***two ingredients*** you will need in order to use the Revit Batch Processo
 
 - A **Dynamo (.dyn)** or **Python (.py)** task script. This script will be executed once for each file in the list.
 
-  For Dynamo scripts, **any workspace (.dyn) file should work** as a task script without modification. *(Indeed, if you find a script that works in Dynamo but not in RBP, [submit an Issue](https://github.com/bvn-architecture/RevitBatchProcessor/issues/new) to the RBP github page!)*
+  For Dynamo scripts, **any workspace (.dyn) file should work** as a task script without modification. *(Indeed, if you find a script that works in Dynamo but not in RBP, [submit an Issue](https://github.com/omanningham/RevitBatchProcessor/issues/new/choose) to the RBP github page!)*
 
   For Python scripts (\*.py) they should contain at minimum the following code:
   ```python
@@ -291,7 +291,9 @@ Help:
 
 Feedback and suggestions for improvement are more than welcome! Please track and submit bugs via the Github Issues page. If you're feeling particularly adventurous you may even submit your own code via a Github pull request.
 
-<https://github.com/bvn-architecture/RevitBatchProcessor>
+<https://github.com/omanningham/RevitBatchProcessor>
+
+This repository is a fork of the original project, <https://github.com/bvn-architecture/RevitBatchProcessor>.
 
 # Known Limitations / Issues
 
