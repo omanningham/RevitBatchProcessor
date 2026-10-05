@@ -131,8 +131,12 @@ La CI (`.github/workflows/ci.yml`) exécute `git diff --check`,
 `python .github/scripts/check_repo.py` (scripts inscrits dans `BatchRvtUtil.csproj`,
 liens Markdown, en-têtes GPL des nouveaux fichiers), le build de la solution et
 celui des addins 2025–2027. Le script de vérification peut être lancé localement.
-Elle n'exécute pas encore les tests EngineProbe (`-ControlEngineFolder` local requis)
-et ne qualifie aucune version de Revit : une CI verte ne remplace pas la validation ci-dessous.
+Elle exécute ensuite `EngineProbe` sur chaque sortie 2025–2027 (IronPython 3.4.2 sous
+.NET 10) et `LegacyEngineProbe` sur la sortie GUI (IronPython 2.7) : hôte de scripts
+réel, tests de `tests/` et compilation de tous les scripts par les deux moteurs.
+Le témoin négatif IronPython 2.7.12 de `BuildNet10Pilot.ps1` reste local
+(`-ControlEngineFolder`). La CI ne qualifie aucune version de Revit : une CI verte
+ne remplace pas la validation ci-dessous.
 
 | Changement | Validation attendue |
 | --- | --- |

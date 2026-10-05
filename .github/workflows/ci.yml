@@ -86,3 +86,44 @@ jobs:
       - name: Verify installer sources exist
         shell: pwsh
         run: ./.github/scripts/verify_installer_sources.ps1
+
+      # Engine probes (no Revit): IronPython 3.4.2 under .NET 10 in each 2025-2027
+      # output, IronPython 2.7 under .NET Framework in the GUI output, the real
+      # script host, the unit tests in tests/ and every script compiled by both
+      # engines. Each output is tested as built, i.e. as the installer ships it.
+      # The IronPython 2.7.12 negative control of scripts/BuildNet10Pilot.ps1 is
+      # not run here (it needs a local -ControlEngineFolder).
+      - name: Build engine probes
+        run: |
+          foreach ($probe in 'EngineProbe', 'LegacyEngineProbe') {
+            dotnet build "tests/$probe/$probe.csproj" -c Release -o "probes/$probe"
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+
+      - name: Shared assemblies per output (information)
+        run: |
+          foreach ($folder in 'BatchRvtGUI', 'BatchRvtAddin2025', 'BatchRvtAddin2026', 'BatchRvtAddin2027') {
+            foreach ($name in 'BatchRvtScriptHost.dll', 'BatchRvtUtil.dll') {
+              $path = "$folder/bin/x64/Release/$name"
+              $hash = if (Test-Path $path) { (Get-FileHash $path).Hash.Substring(0, 12) } else { 'missing' }
+              Write-Host "$folder/$name $hash"
+            }
+          }
+
+      - name: EngineProbe (Revit 2025-2027, IronPython 3.4.2, .NET 10)
+        run: |
+          $failed = @()
+          foreach ($year in 2025..2027) {
+            $addin = "BatchRvtAddin$year/bin/x64/Release"
+            Write-Host "::group::EngineProbe $year"
+            & ./probes/EngineProbe/EngineProbe.exe $addin "BatchRvtUtil/Scripts" $addin
+            $code = $LASTEXITCODE
+            Write-Host "::endgroup::"
+            if ($code) { Write-Host "::error::EngineProbe failed for Revit $year (exit $code)"; $failed += $year }
+          }
+          if ($failed) { exit 1 }
+
+      - name: LegacyEngineProbe (GUI, IronPython 2.7, .NET Framework)
+        run: |
+          & ./probes/LegacyEngineProbe/LegacyEngineProbe.exe "BatchRvtGUI/bin/x64/Release" "BatchRvtUtil/Scripts" "tests"
+          if ($LASTEXITCODE) { Write-Host "::error::LegacyEngineProbe failed (exit $LASTEXITCODE)"; exit $LASTEXITCODE }
