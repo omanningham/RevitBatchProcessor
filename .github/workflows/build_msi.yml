@@ -58,6 +58,8 @@ jobs:
           fail_on_unmatched_files: true
 
   # Version bump PR against master: README, installer script and assembly version.
+  # Britton tags are vX.Y.Z-brt.N (see docs/britton-customizations.md); the uploaded
+  # installer name matches OutputBaseFilename only because both use the raw tag.
   # Requires "Allow GitHub Actions to create and approve pull requests" in the
   # repository Actions settings.
   version-pr:
@@ -83,7 +85,6 @@ jobs:
 
       - name: Update readme with new version
         env:
-          VERSION_NUM: ${{ steps.version_num_set.outputs.version }}
           TAG_VALUE: ${{ github.event.release.tag_name }}
         run: |
           python $env:GITHUB_WORKSPACE\.github\workflows\update_readme.py
@@ -93,7 +94,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: master
-          commit-message: "Update version to ${{github.event.release.tag_name}} in README and .iss file"
-          title: '[Actions] Update README and .iss file'
-          body: 'Update version in README'
+          commit-message: "Update version to ${{github.event.release.tag_name}} in README, .iss and assembly info"
+          title: '[Actions] Update version to ${{github.event.release.tag_name}}'
+          body: 'Update version to ${{github.event.release.tag_name}} (numeric ${{ steps.version_num_set.outputs.version }}) in README, .iss and GlobalAssemblyInfo.cs.'
           branch: github-actions/update-readme
