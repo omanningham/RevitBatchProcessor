@@ -1,3 +1,5 @@
+*Français | [English](README.en.md)*
+
 # Revit Batch Processor (RBP) — édition Britton
 
 Traitement par lots entièrement automatisé de fichiers Revit à l'aide de vos propres scripts de tâche Python ou Dynamo!
@@ -21,7 +23,7 @@ Traitement par lots entièrement automatisé de fichiers Revit à l'aide de vos 
 | Dossiers `TMP` | Un fichier dont le chemin contient un dossier `TMP` est réenregistré sur lui-même avant l'exécution de la tâche (BRT-03). |
 | Mises à jour officielles | Intégrées manuellement; une veille signale les nouveautés du dépôt officiel sans fusion automatique. |
 
-Ce README est la traduction en français canadien du README officiel, adaptée à l'édition Britton. Le [README original en anglais](https://github.com/bvn-architecture/RevitBatchProcessor/blob/master/README.md) reste disponible dans le dépôt officiel.
+Ce README est la traduction en français canadien du README officiel, adaptée à l'édition Britton. Une [version anglaise](README.en.md) de ce README est maintenue en parallèle. Le [README original en anglais](https://github.com/bvn-architecture/RevitBatchProcessor/blob/master/README.md) reste disponible dans le dépôt officiel.
 
 ## Dernière version
 

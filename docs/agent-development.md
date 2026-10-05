@@ -192,7 +192,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 
 ## Références internes
 
-- [README et usage](../README.md)
+- [README et usage](../README.md) et sa [version anglaise](../README.en.md), à garder synchronisées
 - [Scripts exemples](SampleScripts.md)
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
