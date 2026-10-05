@@ -104,7 +104,8 @@ jobs:
         run: |
           foreach ($folder in 'BatchRvtGUI', 'BatchRvtAddin2025', 'BatchRvtAddin2026', 'BatchRvtAddin2027') {
             foreach ($name in 'BatchRvtScriptHost.dll', 'BatchRvtUtil.dll') {
-              $hash = (Get-FileHash "$folder/bin/x64/Release/$name").Hash.Substring(0, 12)
+              $path = "$folder/bin/x64/Release/$name"
+              $hash = if (Test-Path $path) { (Get-FileHash $path).Hash.Substring(0, 12) } else { 'missing' }
               Write-Host "$folder/$name $hash"
             }
           }
