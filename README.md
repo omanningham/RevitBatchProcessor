@@ -1,21 +1,41 @@
+*English | [Français](README.fr.md)*
 
-<span style="color:green; font-size:16px"> ATTENTION: Due to other commitments the original author of Revit Batch Processor (@DanRumery) is unable to support RBP for the future. For questions please seek help from the community such as the Dynamo and Revit API forums.
-
-</span>
-
-# Revit Batch Processor (RBP)
+# Revit Batch Processor (RBP) — Britton edition
 
 Fully automated batch processing of Revit files with your own Python or Dynamo task scripts!
 
-## Latest version (NEW)
+> [!IMPORTANT]
+> **This repository is the fork maintained by La Cie Électrique Britton Ltée ("Britton"), not the official project.**
+>
+> *Ce dépôt est le fork de La Cie Électrique Britton Ltée, et non le projet officiel. Documentation en français : [README.fr.md](README.fr.md).*
+>
+> - It is maintained by Britton for its own needs. It is not supported by BVN or by the original author (@DanRumery), who no longer maintains the official project either.
+> - The official project is at <https://github.com/bvn-architecture/RevitBatchProcessor>. Issues specific to this edition should be reported in [this repository](https://github.com/omanningham/RevitBatchProcessor/issues), not in the official one.
+> - The Britton changes (French button labels, `TMP` folder pre-processing, etc.) are described in the [Britton customizations register](docs/britton-customizations.md) (in French).
 
-Version 1.13.0 beta release is available, which includes support for Revit 2027. [Installer is here](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
+## How this fork differs from the original
 
-See the [Releases](https://github.com/omanningham/RevitBatchProcessor/releases) page for [v1.13.0 release notes](https://github.com/omanningham/RevitBatchProcessor/releases/tag/v1.13.0-beta).
+| Topic | Britton edition |
+| --- | --- |
+| Versions | Tags `vX.Y.Z-brt.N`: `X.Y.Z` is the merged official version, `N` the Britton release number on that base. No beta releases. See [version numbering](docs/britton-customizations.md#numérotation-des-versions) (in French). |
+| Installer | Displayed as "Revit Batch Processor (Britton)", publisher "Britton". It keeps the official application identifier, so it **replaces** an existing BVN installation instead of coexisting with it. |
+| Distribution | Installer published in the [fork's releases](https://github.com/omanningham/RevitBatchProcessor/releases), with a manifest for a [private winget source](docs/winget.md) (in French). |
+| Revit 2025 to 2027 | Addins targeting .NET 10 (`net10.0-windows`) with IronPython 3.4.2, qualified by the maintainer in Revit 2025.5, 2026.5 and 2027 on October 2, 2026. Dynamo and cloud processing remain unqualified. See the [.NET 10 runbook](docs/net10-pilot.md). |
+| Revit dialogs | Recognition of some French buttons (Fermer, Oui, Non) in addition to the English labels (BRT-01 and BRT-02). |
+| `TMP` folders | A file whose path contains a `TMP` folder is re-saved over itself before the task runs (BRT-03). |
+| Official updates | Merged manually; a watch job reports official changes without merging them automatically. |
+
+This README follows the official one, with the Britton changes above; a [French translation](README.fr.md) is maintained alongside it. The [original README](https://github.com/bvn-architecture/RevitBatchProcessor/blob/master/README.md) is still available in the official repository.
+
+## Latest version
+
+Version 1.13.0-brt.1 is available, which includes support for Revit 2027. [Installer is here](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-brt.1/RevitBatchProcessorSetup_v1.13.0-brt.1.exe)
+
+See the [Releases](https://github.com/omanningham/RevitBatchProcessor/releases) page for [v1.13.0-brt.1 release notes](https://github.com/omanningham/RevitBatchProcessor/releases/tag/v1.13.0-brt.1).
 
 ## RBP Sample Scripts
 
-Simple task, pre- and post-processing examples are in [docs/SampleScripts.md](docs/SampleScripts.md). The UI is described in [docs/ui.md](docs/ui.md). Fork-specific changes are in [docs/britton-customizations.md](docs/britton-customizations.md).
+Simple task, pre- and post-processing examples are in [docs/SampleScripts.md](docs/SampleScripts.md). The UI is described in [docs/ui.md](docs/ui.md).
 
 [Click here for some sample RBP python scripts maintained by Jan Christel (@jchristel)](https://github.com/jchristel/SampleCodeRevitBatchProcessor/)
 
@@ -23,7 +43,7 @@ Many thanks to Jan for authoring and making these RBP sample scripts public!
 
 ## FAQ
 
-See the [Revit Batch Processor FAQ](https://github.com/bvn-architecture/RevitBatchProcessor/wiki/Revit-Batch-Processor-FAQ).
+See the official project's [Revit Batch Processor FAQ](https://github.com/bvn-architecture/RevitBatchProcessor/wiki/Revit-Batch-Processor-FAQ). It does not cover the Britton changes.
 
 ## Use cases
 
@@ -60,26 +80,26 @@ This tool doesn't _do_ any of these things, but it _allows_ you to do them:
 
 This tool enables you to do things with Revit files on a very large scale. Because of this ability, Python or Dynamo scripts that make modifications to Revit files (esp. workshared files) should be developed with the utmost care! You will need to be confident in your ability to write Python or Dynamo scripts that won't ruin your files en-masse. The Revit Batch Processor's 'Detach from Central' option should be used both while testing and for scripts that do not explicitly depend on working with a live workshared Central file.
 
-**Data safety:**
+### Data safety
 
 - Test on disposable copies of your models, never on production files.
 - 'Detach from Central' only applies to workshared files. Non-workshared .rvt files and families (.rfa) are opened directly, so a task script that saves the document modifies the original. A detached document that is saved becomes a new central model.
 - 'Create New Local' is the only mode that does not detach. The local file is created under `C:\REVIT_LOCAL<year>` and any file already present at that path is deleted first.
-- In this fork, a path containing a `TMP` folder is re-saved over itself before the task runs (BRT-03). See [docs/britton-customizations.md](docs/britton-customizations.md).
+- In this edition, a path containing a `TMP` folder is re-saved over itself before the task runs (BRT-03). See [docs/britton-customizations.md](docs/britton-customizations.md).
 
 # Build & Installation Instructions
 
 ## Development with coding agents
 
-See the [shared agent development guide](docs/agent-development.md) for repository
+See the [shared agent development guide](docs/agent-development.md) (in French) for repository
 architecture, build constraints and validation guidance. Entry points are provided
 in `AGENTS.md`, `CLAUDE.md` and `.github/copilot-instructions.md`.
 
 ## Installer
 
-[Installer for Revit Batch Processor v1.13.0 beta](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)
+[Installer for Revit Batch Processor v1.13.0-brt.1](https://github.com/omanningham/RevitBatchProcessor/releases/download/v1.13.0-brt.1/RevitBatchProcessorSetup_v1.13.0-brt.1.exe)
 
-The Revit Batch Processor (GUI) application will appear in the Start menu after the installation.
+The Revit Batch Processor (GUI) application will appear in the Start menu after the installation. It installs in the user profile, without administrator rights. For a winget installation, see [docs/winget.md](docs/winget.md).
 
 ## Build from Source code
 
@@ -95,7 +115,7 @@ When rebuilding, please make sure all Revit applications are closed before attem
 
 - At least one version of Revit installed. Currently supports Revit versions 2015 through 2027.
 - To build the whole solution from source code, Visual Studio 2026 (version 18.0 or later, required to target `net10.0`) with the .NET 10 SDK. Visual Studio 2017 or later is enough only for the projects that do not target .NET 10. See [Microsoft Learn](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs#targeting-and-support-rules).
-- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: RBP runs a temporary copy of the Dynamo script with the 'Automatic' Run mode, so the script's folder must be writable. Dynamo support for Revit 2025-2027 has not been qualified in this fork (see [docs/net10-pilot.md](docs/net10-pilot.md)). There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
+- If executing Dynamo scripts from the task script, Dynamo 1.3+ installed (currently supports Revit versions 2016 through 2027). NOTE: RBP runs a temporary copy of the Dynamo script with the 'Automatic' Run mode, so the script's folder must be writable. Dynamo support for Revit 2025-2027 has not been qualified in this edition (see [docs/net10-pilot.md](docs/net10-pilot.md)). There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit.
 - If using an Excel file for the Revit File List, Microsoft Office / Excel installed.
 
 # License
@@ -120,25 +140,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Credits
 
 Daniel Rumery [@DanRumery](https://github.com/DanRumery) (Original / Primary Author)
+
 ## Other Contributors (code)
 
 - Vincent Cadoret [@vinnividivicci](https://github.com/vinnividivicci)
 - Ryan Schwartz [@RyanSchw](https://github.com/RyanSchw)
-- Dimitar Venkov [@dimven](https://github.com/dimven) (Upgraded support for Revit 2025) 
+- Dimitar Venkov [@dimven](https://github.com/dimven) (Upgraded support for Revit 2025)
 - Nicklas Ostergaard [@NicklasOestergaard](https://github.com/NicklasOestergaard) (Upgraded support for Revit 2022)
 - Peter Smith [@punderscoresmithuk](https://github.com/punderscoresmithuk) (Upgraded support for Revit 2023)
 - Maciej Wypych [@maciejwypych](https://github.com/maciejwypych) (Upgraded support for Revit 2024 and more)
 - Rob Mintzes [@rgdt-bert](https://github.com/rgdt-bert) (Upgraded support for Revit 2027)
 
+The Britton edition changes are maintained by La Cie Électrique Britton Ltée.
+
 # Usage
 
 The ***two ingredients*** you will need in order to use the Revit Batch Processor ("RBP") are:
 - An **Excel (.xlsx / .xls) file**, **CSV (.csv) file** or **Text (.txt) file** that contains a list of Revit file paths. Each file path must be fully qualified (no partial paths).
-  
+
   For an Excel file this means the first column of each row contains a file path.
 
   For a Text file this means each line contains a file path.
-  
+
   For example:
   ```
   P:\15\ProjectABC\MainModel.rvt
@@ -154,7 +177,7 @@ The ***two ingredients*** you will need in order to use the Revit Batch Processo
   There is limited support for processing files in BIM360. For BIM360-hosted files, use the following format instead:
 
   `<Revit version> <Project Guid> <Model Guid>`
-  
+
   *Note: these three components must be separated by space(s) (not tabs!).*
 
   For example:
@@ -167,7 +190,7 @@ The ***two ingredients*** you will need in order to use the Revit Batch Processo
 
 - A **Dynamo (.dyn)** or **Python (.py)** task script. This script will be executed once for each file in the list.
 
-  For Dynamo scripts, **any workspace (.dyn) file should work** as a task script without modification. *(Indeed, if you find a script that works in Dynamo but not in RBP, [submit an Issue](https://github.com/omanningham/RevitBatchProcessor/issues/new/choose) to the RBP github page!)*
+  For Dynamo scripts, **any workspace (.dyn) file should work** as a task script without modification. *(Indeed, if you find a script that works in Dynamo but not in RBP, [submit an Issue](https://github.com/omanningham/RevitBatchProcessor/issues/new/choose) to this repository!)*
 
   For Python scripts (\*.py) they should contain at minimum the following code:
   ```python
@@ -289,23 +312,15 @@ Help:
 
 # Contribute
 
-Feedback and suggestions for improvement are more than welcome! Please track and submit bugs via the Github Issues page. If you're feeling particularly adventurous you may even submit your own code via a Github pull request.
+Feedback and suggestions for improvement are more than welcome! Please report bugs in this edition via this repository's Github Issues page. If you're feeling particularly adventurous you may even submit your own code via a Github pull request.
 
 <https://github.com/omanningham/RevitBatchProcessor>
 
-This repository is a fork of the original project, <https://github.com/bvn-architecture/RevitBatchProcessor>.
+This repository is a fork of the original project, <https://github.com/bvn-architecture/RevitBatchProcessor>. A fix unrelated to the Britton changes may also be of interest to the official project.
 
 # Known Limitations / Issues
 
 - There **MUST BE EXACTLY ONE VERSION OF DYNAMO INSTALLED** for each version of Revit. If two or more versions of Dynamo are installed for the same Revit version then the Revit Batch Processor fails to run the Dynamo task script because the required Dynamo Revit module is not loaded. This may be fixed in a future version.
 - Dynamo scripts will always be executed using the 'Use separate Revit session for each Revit file' option. This restriction is due to the context in which Revit Batch Processor operates with the Revit API, which prevents the active UI document from being closed or switched during the Revit session. (NOTE: When executing a Dynamo task script, the Revit Batch Processor opens the document in the UI and is therefore subject to this Revit API limitation. For Python task scripts, the Revit Batch Processor only opens the document in memory, so Python scripts do not suffer this restriction!)
-- Revit Batch Processor currently only recognizes and automatically handles Revit dialog boxes presented in English (dialog title, text and button text). If you're using a non-English version of Windows or Revit then it's very likely RBP will fail to handle any dialog boxes that appear during processing. (This fork adds a few French button labels — Fermer / Oui / Non — see [docs/britton-customizations.md](docs/britton-customizations.md); coverage is partial.)
+- Revit Batch Processor currently only recognizes and automatically handles Revit dialog boxes presented in English (dialog title, text and button text). If you're using a non-English version of Windows or Revit then it's very likely RBP will fail to handle any dialog boxes that appear during processing. (This edition adds a few French button labels — Fermer / Oui / Non — see [docs/britton-customizations.md](docs/britton-customizations.md); coverage is partial.)
 - Revit Batch Processor requires write access to the folder containing the Dynamo script. This because it makes a temporary copy of the Dynamo script in the same folder as the original. The temporary copy is made so that the script's Run mode can be temporarily set to 'Automatic' (if it isn't already). It is created in the same folder as the original so that any relative paths in the script will remain valid.
-
-<!---
-
-# Release Notes
-
-[ TO DO ]
-
---->

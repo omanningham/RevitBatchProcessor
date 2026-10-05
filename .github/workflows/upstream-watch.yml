@@ -47,10 +47,17 @@ jobs:
           release=$(gh api "repos/$UPSTREAM/releases/latest" --jq '.tag_name + " (" + .published_at[0:10] + ")"' || echo "aucune")
           commits=$(jq -r --arg u "$UPSTREAM" '.commits[] | "- [`\(.sha[0:7])`](https://github.com/\($u)/commit/\(.sha)) \(.commit.message | split("\n")[0])"' <<<"$compare")
           marker="upstream-sha: $head_sha"
-          body=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n<!-- %s -->\n' \
+          # README.md stays in English like upstream; README.fr.md is its translation.
+          if jq -e 'any(.files[]?; .filename == "README.md")' <<<"$compare" >/dev/null; then
+            readme_note="- [ ] \`README.md\` modifié upstream : intégrer le changement, puis le traduire dans \`README.fr.md\`."
+          else
+            readme_note="- [ ] Si \`README.md\` change à la fusion : reporter le changement dans \`README.fr.md\`."
+          fi
+          body=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n<!-- %s -->\n' \
             "\`$UPSTREAM\` master contient **$ahead** commit(s) absent(s) de \`master\`. Dernière release upstream : $release." \
             "$commits" \
             "Avant toute fusion : consulter \`docs/britton-customizations.md\` et valider selon \`docs/agent-development.md\`. Aucune fusion automatique." \
+            "$readme_note" \
             "Comparaison : https://github.com/$GH_REPO/compare/master...$owner:master" \
             "$marker")
 

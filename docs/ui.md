@@ -40,7 +40,7 @@ TODO: swap the screenshot for a labelled version, with the advanced settings sho
 
 | Control | What it does |
 | --- | --- |
-| Detach from Central | Opens a detached copy of workshared files (`--detach`). Does not apply to non-workshared files or families; see *Data safety* in the [README](../README.md#unlimited-power). |
+| Detach from Central | Opens a detached copy of workshared files (`--detach`). Does not apply to non-workshared files or families; see *Data safety* in the [README](../README.md#data-safety). |
 | Create New Local | Creates a local file from the central file (`--create_new_local`). Any existing file at the local path is deleted first. |
 | Discard Worksets | With *Detach from Central*, detaches and discards the worksets instead of preserving them. |
 | Delete Local After | With *Create New Local*, deletes the local file when processing is done. |
