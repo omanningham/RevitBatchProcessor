@@ -1,0 +1,88 @@
+name: CI
+
+# Builds and repository checks for pull requests and master.
+# No Revit is available on hosted runners: this does not qualify any Revit
+# version (see docs/agent-development.md, "Validation et état des tests").
+# No paths filter on purpose: these jobs are meant to become required checks.
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    name: Repository checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # base...HEAD comparisons below
+
+      - name: Determine base commit
+        id: base
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # HEAD is GitHub's merge commit; its first parent is the master tip
+            # it was built on, so the diff contains only this PR's changes.
+            base="HEAD^1"
+          elif [ "${{ github.event_name }}" = "push" ] && ! echo "${{ github.event.before }}" | grep -q '^0*$'; then
+            base="${{ github.event.before }}"
+          else
+            base="HEAD~1"
+          fi
+          echo "sha=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Whitespace errors in the change (git diff --check)
+        run: git diff --check "${{ steps.base.outputs.sha }}" HEAD
+
+      - name: Scripts listed in csproj, Markdown links, GPL headers
+        run: python3 .github/scripts/check_repo.py --base "${{ steps.base.outputs.sha }}"
+
+  solution-build:
+    name: Solution build (as release)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      # Before the solution restore, which would otherwise rewrite a stale lock file.
+      - name: Locked restore of the Revit 2025-2027 addins
+        run: |
+          foreach ($year in 2025..2027) {
+            dotnet restore "BatchRvtAddin$year/BatchRvtAddin$year.csproj" --locked-mode -p:Platform=x64
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
+
+      - name: Restore NuGet packages
+        run: nuget restore "RevitBatchProcessor.sln"
+
+      - name: Lock files unchanged by the restore
+        run: git diff --exit-code -- '*packages.lock.json'
+
+      # Same command as build_msi.yml. On this disposable runner the legacy addin
+      # post-build events copy to the runner profile only.
+      - name: Build solution
+        run: |
+          msbuild -version
+          dotnet --list-sdks
+          msbuild "RevitBatchProcessor.sln" /p:Configuration=Release /p:Platform="x64" /m
+
+      - name: Verify installer sources exist
+        shell: pwsh
+        run: ./.github/scripts/verify_installer_sources.ps1

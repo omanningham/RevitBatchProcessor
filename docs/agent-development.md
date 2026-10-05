@@ -34,7 +34,10 @@ le chargent automatiquement : l'agent doit le lire explicitement.
 | `AddinDeployment/` | Installation et suppression des addins dans le profil Windows. |
 | `scripts/` | Anciens lanceurs de build et d'exécution utilisant IronPython. |
 | `Setup/` | Packaging Inno Setup et outils associés. |
-| `.github/workflows/build_msi.yml` | Workflow de release : restauration, build, packaging, publication et mise à jour de version. |
+| `.github/workflows/build_msi.yml` | Workflow de release : build du tag, packaging, publication, puis PR de version vers `master`. |
+| `.github/workflows/ci.yml` | CI des PR et de `master` : vérifications du dépôt, build de la solution comme en release, addins 2025–2027 en restauration verrouillée. |
+| `.github/scripts/` | Scripts partagés par les workflows (`check_repo.py`, version, sources de l'installateur). |
+| `.github/workflows/` (autres) | CodeQL, labels des PR, veille upstream (issue `upstream-sync`, sans fusion automatique). |
 
 Le flux passe par la GUI ou la console, les utilitaires/scripts de supervision,
 puis l'addin et l'hôte de scripts dans Revit. Examiner les deux côtés d'un échange
@@ -124,6 +127,13 @@ que des artefacts `obj/`. Les références Moq/FluentAssertions et les scripts
 `global_test_mode.py` / `test_mode_util.py` ne constituent pas une suite de tests exécutable.
 Ne pas annoncer « tests réussis » sur la seule base d'un `dotnet test` sans tests découverts.
 
+La CI (`.github/workflows/ci.yml`) exécute `git diff --check`,
+`python .github/scripts/check_repo.py` (scripts inscrits dans `BatchRvtUtil.csproj`,
+liens Markdown, en-têtes GPL des nouveaux fichiers), le build de la solution et
+celui des addins 2025–2027. Le script de vérification peut être lancé localement.
+Elle n'exécute pas encore les tests EngineProbe (`-ControlEngineFolder` local requis)
+et ne qualifie aucune version de Revit : une CI verte ne remplace pas la validation ci-dessous.
+
 | Changement | Validation attendue |
 | --- | --- |
 | Documentation | Relire les consignes, vérifier les chemins/liens et `git diff --check`. Aucun build requis. |
@@ -181,6 +191,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 - [Scripts exemples](SampleScripts.md)
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
+- [CI des PR](../.github/workflows/ci.yml)
 - [Instructions Codex et agents compatibles](../AGENTS.md)
 - [Instructions Claude Code](../CLAUDE.md)
 - [Instructions GitHub Copilot](../.github/copilot-instructions.md)

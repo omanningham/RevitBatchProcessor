@@ -1,0 +1,70 @@
+name: Upstream watch
+
+# Opens (or updates) one "upstream-sync" issue when bvn-architecture/master has
+# commits that are not in this fork's master. Notification only: nothing is
+# merged automatically. Review docs/britton-customizations.md before merging.
+# Scheduled workflows may need to be enabled manually on a fork (Actions tab).
+
+on:
+  schedule:
+    - cron: '17 12 * * 1' # Mondays 12:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      UPSTREAM: bvn-architecture/RevitBatchProcessor
+    steps:
+      - name: Compare with upstream master
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${UPSTREAM%%/*}"
+          compare=$(gh api "repos/$GH_REPO/compare/master...$owner:master")
+          ahead=$(jq -r '.ahead_by' <<<"$compare")
+          echo "Upstream commits not in master: $ahead"
+          existing=$(gh issue list --label upstream-sync --state open --json number --jq '.[0].number // empty' 2>/dev/null || true)
+          if [ "$ahead" = "0" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --comment "Plus aucun commit upstream absent de \`master\` : fermeture automatique."
+            fi
+            exit 0
+          fi
+
+          # Real upstream head: the compare response lists at most 250 commits.
+          head_sha=$(gh api "repos/$UPSTREAM/commits/master" --jq '.sha')
+          release=$(gh api "repos/$UPSTREAM/releases/latest" --jq '.tag_name + " (" + .published_at[0:10] + ")"' || echo "aucune")
+          commits=$(jq -r --arg u "$UPSTREAM" '.commits[] | "- [`\(.sha[0:7])`](https://github.com/\($u)/commit/\(.sha)) \(.commit.message | split("\n")[0])"' <<<"$compare")
+          marker="upstream-sha: $head_sha"
+          body=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n<!-- %s -->\n' \
+            "\`$UPSTREAM\` master contient **$ahead** commit(s) absent(s) de \`master\`. Dernière release upstream : $release." \
+            "$commits" \
+            "Avant toute fusion : consulter \`docs/britton-customizations.md\` et valider selon \`docs/agent-development.md\`. Aucune fusion automatique." \
+            "Comparaison : https://github.com/$GH_REPO/compare/master...$owner:master" \
+            "$marker")
+
+          gh label create upstream-sync --color 5319e7 --description "Changements à intégrer depuis bvn-architecture" --force >/dev/null
+
+          if [ -z "$existing" ]; then
+            gh issue create --title "Upstream : $ahead commit(s) à examiner" --label upstream-sync --body "$body"
+            exit 0
+          fi
+          # Capture first: grep -q on a pipe could SIGPIPE gh under pipefail.
+          thread=$(gh issue view "$existing" --json body,comments --jq '[.body] + [.comments[].body] | join("\n")')
+          if grep -qF "$marker" <<<"$thread"; then
+            echo "Issue #$existing already mentions $head_sha"
+          else
+            gh issue comment "$existing" --body "$body"
+            gh issue edit "$existing" --title "Upstream : $ahead commit(s) à examiner"
+          fi
