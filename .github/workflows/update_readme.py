@@ -2,9 +2,11 @@ import os
 import re
 
 
-# Matches X.Y.Z, X.Y.Z.N, X.Y.Z-beta and X.Y.Z-brt.N, plus a trailing " beta" label,
-# dropped because Britton releases are not beta.
-VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?(?:-beta|-brt\.\d+)?(?: beta\b)?")
+# Matches any previous version form without depending on the tag grammar (defined in
+# .github/scripts/release_metadata.ps1): X.Y.Z or X.Y.Z.N, an optional "-label" or
+# "-label.N" suffix (not ".exe"), and a trailing " beta" label, dropped because Britton
+# releases are not beta.
+VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z]+(?:\.\d+)?)?(?: beta\b)?")
 
 
 def update_line(line, tag_without_v):

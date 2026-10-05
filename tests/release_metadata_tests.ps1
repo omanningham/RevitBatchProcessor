@@ -84,12 +84,15 @@ try {
 
     # --- set_version.ps1 on copies of the installer script and GlobalAssemblyInfo.cs ---
     foreach ($case in @(
-        @{ Tag = 'v1.14.0-brt.3'; Version = '1.14.0.3'; Display = '1.14.0-brt.3'; Assembly = '1.14.0.0' },
-        @{ Tag = 'v1.14.0-beta';  Version = '1.14.0.0'; Display = '1.14.0-beta';  Assembly = '1.14.0.0' })) {
+        @{ Tag = 'v1.14.0-brt.3'; Version = '1.14.0.3'; Display = '1.14.0-brt.3'; Assembly = '1.14.0.0'; Britton = 'true' },
+        @{ Tag = 'v1.14.0-beta';  Version = '1.14.0.0'; Display = '1.14.0-beta';  Assembly = '1.14.0.0'; Britton = 'false' })) {
         $work = Join-Path $temp ('setver-' + [IO.Path]::GetRandomFileName())
         New-Item -ItemType Directory -Path (Join-Path $work 'Setup'), (Join-Path $work 'Common') | Out-Null
         Copy-Item (Join-Path $repoRoot 'Setup/RevitBatchProcessor.iss') (Join-Path $work 'Setup')
         Copy-Item (Join-Path $repoRoot 'Common/GlobalAssemblyInfo.cs') (Join-Path $work 'Common')
+        # An upstream merge may bring back upstream's installer file name; the tag must win.
+        $issCopy = Join-Path $work 'Setup/RevitBatchProcessor.iss'
+        [IO.File]::WriteAllText($issCopy, ([IO.File]::ReadAllText($issCopy) -replace 'OutputBaseFilename=[^\r\n]*', 'OutputBaseFilename=RevitBatchProcessorSetup_v{#AppVersion}-beta'))
         $crlfBefore = ([regex]::Matches([IO.File]::ReadAllText((Join-Path $work 'Setup/RevitBatchProcessor.iss')), "`r`n")).Count
         $outputFile = Join-Path $work 'github_output.txt'
         $savedOutput = $env:GITHUB_OUTPUT
@@ -105,9 +108,45 @@ try {
         Assert-Equal $true $cs.Contains("AssemblyVersion(`"$($case.Assembly)`")") "$($case.Tag) AssemblyVersion"
         Assert-Equal $true $cs.Contains("AssemblyFileVersion(`"$($case.Version)`")") "$($case.Tag) AssemblyFileVersion"
         Assert-Equal $true $cs.Contains("AssemblyInformationalVersion(`"$($case.Display)`")") "$($case.Tag) InformationalVersion"
+        Assert-Equal $true $iss.Contains('OutputBaseFilename=RevitBatchProcessorSetup_v{#AppDisplayVersion}') "$($case.Tag) installer file name follows the tag"
         $outputs = @(Get-Content -Path $outputFile)
-        Assert-Equal "version=$($case.Version)" ($outputs -join '|') "$($case.Tag) GITHUB_OUTPUT has only version"
+        Assert-Equal "version=$($case.Version)|is_britton=$($case.Britton)" ($outputs -join '|') "$($case.Tag) GITHUB_OUTPUT"
     }
+
+    # A define or attribute lost in a merge must stop set_version.ps1, before anything is written.
+    $work = Join-Path $temp ('setver-' + [IO.Path]::GetRandomFileName())
+    New-Item -ItemType Directory -Path (Join-Path $work 'Setup'), (Join-Path $work 'Common') | Out-Null
+    Copy-Item (Join-Path $repoRoot 'Setup/RevitBatchProcessor.iss') (Join-Path $work 'Setup')
+    Copy-Item (Join-Path $repoRoot 'Common/GlobalAssemblyInfo.cs') (Join-Path $work 'Common')
+    $issCopy = Join-Path $work 'Setup/RevitBatchProcessor.iss'
+    [IO.File]::WriteAllText($issCopy, ([IO.File]::ReadAllText($issCopy) -replace '#define AppDisplayVersion "[^"\r\n]*"', ''))
+    $csCopy = Join-Path $work 'Common/GlobalAssemblyInfo.cs'
+    $csBefore = [IO.File]::ReadAllText($csCopy)
+    Push-Location $work
+    try { Assert-Throws { & (Join-Path $scripts 'set_version.ps1') -Tag 'v1.14.0-brt.3' 6>$null | Out-Null } 'AppDisplayVersion define not found' 'missing AppDisplayVersion define' }
+    finally { Pop-Location }
+    Assert-Equal $csBefore ([IO.File]::ReadAllText($csCopy)) 'nothing written when a pattern is missing'
+
+    # --- update_readme.py: any previous version form on a release line takes the new tag ---
+    $readmeDir = Join-Path $temp ('readme-' + [IO.Path]::GetRandomFileName())
+    New-Item -ItemType Directory -Path $readmeDir | Out-Null
+    [IO.File]::WriteAllText((Join-Path $readmeDir 'README.md'), (@(
+        'Version 1.13.0 beta release is available. [Installer](https://x/releases/download/v1.13.0-beta/RevitBatchProcessorSetup_v1.13.0-beta.exe)',
+        '[v1.14.0-rc.1 notes](https://x/releases/tag/v1.14.0-rc.1) and [v1.13.0.2](https://x/releases/tag/v1.13.0-brt.2)',
+        'Uses IronPython 2.7.3 and .NET 4.8.0.'
+    ) -join "`n") + "`n")
+    $python = if ($IsLinux -or $IsMacOS) { 'python3' } else { 'python' }
+    $savedWorkspace = $env:GITHUB_WORKSPACE
+    $savedTag = $env:TAG_VALUE
+    $env:GITHUB_WORKSPACE = $readmeDir
+    $env:TAG_VALUE = 'v1.15.0-brt.1'
+    try { & $python (Join-Path $repoRoot '.github/workflows/update_readme.py') | Out-Null }
+    finally { $env:GITHUB_WORKSPACE = $savedWorkspace; $env:TAG_VALUE = $savedTag }
+    if ($LASTEXITCODE -ne 0) { throw "update_readme.py failed with exit code $LASTEXITCODE" }
+    $readme = @(Get-Content -Path (Join-Path $readmeDir 'README.md'))
+    Assert-Equal 'Version 1.15.0-brt.1 release is available. [Installer](https://x/releases/download/v1.15.0-brt.1/RevitBatchProcessorSetup_v1.15.0-brt.1.exe)' $readme[0] 'README beta line'
+    Assert-Equal '[v1.15.0-brt.1 notes](https://x/releases/tag/v1.15.0-brt.1) and [v1.15.0-brt.1](https://x/releases/tag/v1.15.0-brt.1)' $readme[1] 'README unknown suffix and 4-part versions'
+    Assert-Equal 'Uses IronPython 2.7.3 and .NET 4.8.0.' $readme[2] 'README non-release line untouched'
 
     # --- new_winget_manifest.ps1 with a dummy installer, run from outside the repository ---
     $dummy = Join-Path $temp 'dummy-installer.exe'
