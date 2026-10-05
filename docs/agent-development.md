@@ -36,7 +36,7 @@ le chargent automatiquement : l'agent doit le lire explicitement.
 | `Setup/` | Packaging Inno Setup et outils associés. |
 | `.github/workflows/build_msi.yml` | Workflow de release : build du tag, packaging, publication, puis PR de version vers `master`. |
 | `.github/workflows/ci.yml` | CI des PR et de `master` : vérifications du dépôt, build de la solution comme en release, addins 2025–2027 en restauration verrouillée. |
-| `.github/scripts/` | Scripts partagés par les workflows (`check_repo.py`, version, sources de l'installateur). |
+| `.github/scripts/` | Scripts partagés par les workflows (`check_repo.py`, version, sources de l'installateur, manifeste winget). |
 | `.github/workflows/` (autres) | CodeQL, labels des PR, veille upstream (issue `upstream-sync`, sans fusion automatique). |
 
 Le flux passe par la GUI ou la console, les utilitaires/scripts de supervision,
@@ -195,6 +195,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 - [Scripts exemples](SampleScripts.md)
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
+- [Distribution Britton par winget](winget.md)
 - [CI des PR](../.github/workflows/ci.yml)
 - [Instructions Codex et agents compatibles](../AGENTS.md)
 - [Instructions Claude Code](../CLAUDE.md)

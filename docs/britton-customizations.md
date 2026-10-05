@@ -139,7 +139,8 @@ car les deux installent les mêmes addins. Seuls le nom affiché
 (« Revit Batch Processor (Britton) ») et l'éditeur changent.
 
 [set_version.ps1](../.github/scripts/set_version.ps1) dérive toutes ces valeurs du tag,
-dans le workflow de release et dans la PR de version vers `master`. Les addins
+dans le workflow de release et dans la PR de version vers `master`. La distribution
+par une source winget privée est décrite dans [winget.md](winget.md). Les addins
 2024–2027 ont leur propre `AssemblyVersion` (1.0.0) et ne suivent pas ce schéma.
 
 ## Procédure après une mise à jour officielle

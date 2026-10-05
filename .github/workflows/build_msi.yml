@@ -57,6 +57,21 @@ jobs:
           files: Setup\Output\RevitBatchProcessorSetup_${{github.event.release.tag_name}}.exe
           fail_on_unmatched_files: true
 
+      # winget manifest for the private source (docs/winget.md), hashed from the
+      # installer built above. Britton tags only.
+      - name: Create winget manifest
+        id: winget_manifest
+        if: contains(github.event.release.tag_name, '-brt.')
+        shell: pwsh
+        run: ./.github/scripts/new_winget_manifest.ps1 -Tag "${{ github.event.release.tag_name }}" -InstallerPath "Setup\Output\RevitBatchProcessorSetup_${{github.event.release.tag_name}}.exe"
+
+      - name: Upload winget manifest
+        if: contains(github.event.release.tag_name, '-brt.')
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          files: ${{ steps.winget_manifest.outputs.manifest_dir }}/*.yaml
+          fail_on_unmatched_files: true
+
   # Version bump PR against master: README, installer script and assembly version.
   # Britton tags are vX.Y.Z-brt.N (see docs/britton-customizations.md); the uploaded
   # installer name matches OutputBaseFilename only because both use the raw tag.
