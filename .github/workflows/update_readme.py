@@ -2,10 +2,17 @@ import os
 import re
 
 
-def update_line(line, tag_without_v, version):
-    """Replace version numbers in a single README line."""
-    line = re.sub(r"\d+\.\d+\.\d+-beta", tag_without_v, line)
-    return re.sub(r"\d+\.\d+\.\d+", version, line)
+# Matches any previous version form without depending on the tag grammar (defined in
+# .github/scripts/release_metadata.ps1): X.Y.Z or X.Y.Z.N, an optional "-label" or
+# "-label.N" suffix (not ".exe"), and a trailing " beta" label, dropped because Britton
+# releases are not beta.
+VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z]+(?:\.\d+)?)?(?: beta\b)?")
+
+
+def update_line(line, tag_without_v):
+    """Replace version numbers in a single README line with the tag form
+    (e.g. 1.13.0-brt.1), used both by release links and labels."""
+    return VERSION_PATTERN.sub(tag_without_v, line)
 
 
 def update_readme():
@@ -19,7 +26,6 @@ def update_readme():
     root_dir = os.getenv("GITHUB_WORKSPACE")
     tag_val = os.getenv("TAG_VALUE")
     tag_without_v = tag_val[1:] if tag_val.lower().startswith("v") else tag_val
-    version = os.getenv("VERSION_NUM")
 
     os.chdir(root_dir)
 
@@ -30,7 +36,7 @@ def update_readme():
     updated = 0
     for i, line in enumerate(lines):
         if "/releases" in line:
-            new_line = update_line(line, tag_without_v, version)
+            new_line = update_line(line, tag_without_v)
             if new_line != line:
                 lines[i] = new_line
                 updated += 1
@@ -39,7 +45,7 @@ def update_readme():
     with open("README.md", "w", encoding="utf-8", newline="") as file:
         file.writelines(lines)
 
-    print(f"Updated {updated} README.md line(s) with version {version}")
+    print(f"Updated {updated} README.md line(s) with version {tag_without_v}")
 
 
 if __name__ == "__main__":

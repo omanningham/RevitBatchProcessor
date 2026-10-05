@@ -12,7 +12,7 @@ body:
     attributes:
       label: Version de RBP
       description: Version de l'installateur ou commit utilisé.
-      placeholder: v1.13.0-beta, ou commit 2b00c1b
+      placeholder: v1.13.0-brt.1, ou commit 2b00c1b
     validations:
       required: true
   - type: input

@@ -36,7 +36,7 @@ le chargent automatiquement : l'agent doit le lire explicitement.
 | `Setup/` | Packaging Inno Setup et outils associés. |
 | `.github/workflows/build_msi.yml` | Workflow de release : build du tag, packaging, publication, puis PR de version vers `master`. |
 | `.github/workflows/ci.yml` | CI des PR et de `master` : vérifications du dépôt, build de la solution comme en release, addins 2025–2027 en restauration verrouillée. |
-| `.github/scripts/` | Scripts partagés par les workflows (`check_repo.py`, version, sources de l'installateur). |
+| `.github/scripts/` | Scripts partagés par les workflows (`check_repo.py`, version, sources de l'installateur, manifeste winget). |
 | `.github/workflows/` (autres) | CodeQL, labels des PR, veille upstream (issue `upstream-sync`, sans fusion automatique). |
 
 Le flux passe par la GUI ou la console, les utilitaires/scripts de supervision,
@@ -129,7 +129,8 @@ Ne pas annoncer « tests réussis » sur la seule base d'un `dotnet test` sans t
 
 La CI (`.github/workflows/ci.yml`) exécute `git diff --check`,
 `python .github/scripts/check_repo.py` (scripts inscrits dans `BatchRvtUtil.csproj`,
-liens Markdown, en-têtes GPL des nouveaux fichiers), le build de la solution et
+liens Markdown, en-têtes GPL des nouveaux fichiers), `tests/release_metadata_tests.ps1`
+(versions tirées du tag, identité de l'installeur, manifeste winget), le build de la solution et
 celui des addins 2025–2027. Le script de vérification peut être lancé localement.
 Elle exécute ensuite `EngineProbe` sur chaque sortie 2025–2027 (IronPython 3.4.2 sous
 .NET 10) et `LegacyEngineProbe` sur la sortie GUI (IronPython 2.7) : hôte de scripts
@@ -195,6 +196,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 - [Scripts exemples](SampleScripts.md)
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
+- [Distribution Britton par winget](winget.md)
 - [CI des PR](../.github/workflows/ci.yml)
 - [Instructions Codex et agents compatibles](../AGENTS.md)
 - [Instructions Claude Code](../CLAUDE.md)

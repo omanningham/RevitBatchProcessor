@@ -1,10 +1,16 @@
-#define AppName "Revit Batch Processor"
-#define AppVersion "1.13.0"
+#define AppName "Revit Batch Processor (Britton)"
+; Set by .github/scripts/set_version.ps1 from the release tag vX.Y.Z-brt.N.
+; AppVersion is numeric (X.Y.Z.N): it becomes the DisplayVersion compared by winget.
+#define AppVersion "1.13.0.1"
+#define AppDisplayVersion "1.13.0-brt.1"
 
 [Setup]
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppVersion}
+AppVerName={#AppName} {#AppDisplayVersion}
+AppPublisher=Britton
+VersionInfoVersion={#AppVersion}
+VersionInfoProductTextVersion={#AppDisplayVersion}
 PrivilegesRequired=lowest
 AppId={{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}
 DisableDirPage=auto
@@ -13,7 +19,7 @@ SetupLogging=True
 ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 DefaultGroupName=Revit Batch Processor
-OutputBaseFilename=RevitBatchProcessorSetup_v{#AppVersion}-beta
+OutputBaseFilename=RevitBatchProcessorSetup_v{#AppDisplayVersion}
 OutputDir=Output
 
 ; TODO VERSION UPDATE - ADD FILES TO INSTALLER CONFIG

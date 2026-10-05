@@ -372,7 +372,8 @@ public partial class BatchRvtGuiForm : Form
 
     private void BatchRvtGuiForm_Load(object sender, EventArgs e)
     {
-        Text = WINDOW_TITLE;
+        // ProductVersion is the informational version (Common/GlobalAssemblyInfo.cs), e.g. "1.13.0-brt.1".
+        Text = $"{WINDOW_TITLE} v{ProductVersion}";
 
         TopMost = false;
         alwaysOnTopCheckbox.Checked = TopMost;

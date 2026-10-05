@@ -251,3 +251,6 @@ paket-files/
 __pycache__/
 .idea/
 *.sln.iml
+
+# winget manifests generated locally by .github/scripts/new_winget_manifest.ps1
+winget-manifests/

@@ -116,6 +116,38 @@ la gestion des régions cloud. Les traces `teste1`, le suffixe `_BRT` et les com
 de diagnostic présents dans certaines archives ne constituent pas des fonctionnalités
 actives à réintroduire automatiquement.
 
+## Numérotation des versions
+
+Les releases Britton sont taguées `vX.Y.Z-brt.N` : `X.Y.Z` est la base officielle
+fusionnée, `N` le numéro de release Britton sur cette base. `N` commence à 1 et
+repart à 1 à chaque nouvelle base officielle. Il augmente pour une release Britton
+sans mise à jour officielle. Il n'y a pas de releases beta Britton.
+
+| Emplacement | Exemple pour `v1.13.0-brt.1` |
+| --- | --- |
+| Tag, release GitHub et nom de l'installateur | `v1.13.0-brt.1`, `RevitBatchProcessorSetup_v1.13.0-brt.1.exe` |
+| `AppVersion` Inno, donc `DisplayVersion` Windows et `PackageVersion` winget | `1.13.0.1` |
+| `AssemblyFileVersion` / `AssemblyInformationalVersion` | `1.13.0.1` / `1.13.0-brt.1` |
+| `AssemblyVersion` (base officielle uniquement) | `1.13.0.0` |
+| Titre de la fenêtre BatchRvtGUI | `Revit Batch Processor v1.13.0-brt.1` |
+
+La version comparée par Windows et winget est purement numérique : `X.Y.Z.N` reste
+supérieure à la version officielle `X.Y.Z` (équivalente à `X.Y.Z.0`), alors qu'un
+suffixe texte comme `-brt.1` peut être classé avant. L'installeur garde l'`AppId`
+officiel : il remplace une installation BVN existante au lieu de coexister avec elle,
+car les deux installent les mêmes addins. Seuls le nom affiché
+(« Revit Batch Processor (Britton) X.Y.Z-brt.N ») et l'éditeur (« Britton ») changent :
+un inventaire ou une détection (Intune, script) fondé sur l'ancien nom doit passer à
+la clé `{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1`.
+
+[release_metadata.ps1](../.github/scripts/release_metadata.ps1) définit ces règles ;
+[set_version.ps1](../.github/scripts/set_version.ps1) les applique au tag dans le
+workflow de release et dans la PR de version vers `master`. Il accepte aussi les tags
+officiels `vX.Y.Z` et `vX.Y.Z-beta` (révision 0) ; seuls les tags `-brt.N` produisent
+un manifeste winget. La distribution
+par une source winget privée est décrite dans [winget.md](winget.md). Les addins
+2024–2027 ont leur propre `AssemblyVersion` (1.0.0) et ne suivent pas ce schéma.
+
 ## Procédure après une mise à jour officielle
 
 La configuration constatée utilise `origin` pour le fork Britton et `upstream` pour
@@ -128,6 +160,7 @@ documentation.
 3. Sur la branche qui contient les adaptations Britton, fusionner `upstream/master` avec `git merge upstream/master`. Adapter le nom si le dépôt officiel change de branche principale.
 4. En cas de conflit, préserver l'intention BRT-01 à BRT-04 tout en intégrant les améliorations officielles. Ne pas choisir globalement une seule version des fichiers.
 5. Examiner les quatre sources actives et effectuer les validations ci-dessous avant de pousser la branche vers `origin`.
+6. Conserver le schéma de [numérotation Britton](#numérotation-des-versions) dans `Setup/RevitBatchProcessor.iss`, `Common/GlobalAssemblyInfo.cs` et `set_version.ps1` ; la prochaine release prend la nouvelle base avec `-brt.1`.
 
 Commandes d'inspection depuis la racine, après récupération des références :
 

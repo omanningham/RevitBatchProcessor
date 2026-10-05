@@ -49,6 +49,10 @@ jobs:
       - name: Scripts listed in csproj, Markdown links, GPL headers
         run: python3 .github/scripts/check_repo.py --base "${{ steps.base.outputs.sha }}"
 
+      - name: Release version and winget manifest scripts
+        shell: pwsh
+        run: ./tests/release_metadata_tests.ps1
+
   solution-build:
     name: Solution build (as release)
     runs-on: windows-latest
