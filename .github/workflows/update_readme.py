@@ -2,7 +2,8 @@ import os
 import re
 
 
-# A trailing " beta" label is dropped too: Britton releases are not beta.
+# Matches X.Y.Z, X.Y.Z.N, X.Y.Z-beta and X.Y.Z-brt.N, plus a trailing " beta" label,
+# dropped because Britton releases are not beta.
 VERSION_PATTERN = re.compile(r"\d+\.\d+\.\d+(?:\.\d+)?(?:-beta|-brt\.\d+)?(?: beta\b)?")
 
 

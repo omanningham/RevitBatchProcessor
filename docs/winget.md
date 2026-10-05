@@ -5,15 +5,11 @@ par une source winget privée, en partant d'un poste Windows sans configuration 
 La numérotation utilisée est décrite dans les
 [adaptations Britton](britton-customizations.md#numérotation-des-versions).
 
-État constaté le 5 octobre 2026 : winget 1.29, sources par défaut seulement
-(`msstore`, `winget`, `winget-font`), installation de manifestes locaux désactivée.
-Aucune source Britton n'existe encore.
-
 ## Ce que le dépôt fournit
 
 | Élément | Rôle |
 | --- | --- |
-| [new_winget_manifest.ps1](../.github/scripts/new_winget_manifest.ps1) | Écrit le manifeste winget (schéma 1.12.0, trois fichiers YAML) d'un tag `vX.Y.Z-brt.N`. |
+| [new_winget_manifest.ps1](../.github/scripts/new_winget_manifest.ps1) | Écrit le manifeste winget (trois fichiers YAML, schéma 1.10.0, le plus récent accepté par la source REST officielle) d'un tag `vX.Y.Z-brt.N`. Les versions viennent du tag ; le code produit, le nom et l'éditeur sont lus dans le script Inno. |
 | [Workflow de release](../.github/workflows/build_msi.yml) | Pour chaque release `-brt.N`, génère le manifeste à partir de l'installeur compilé et l'ajoute aux fichiers de la release GitHub. |
 
 Contenu du paquet :
@@ -26,13 +22,19 @@ Contenu du paquet :
 | `InstallerUrl` | Installeur de la release GitHub publique du fork |
 | `ProductCode` | `{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1` |
 
-Le `ProductCode` est la clé de désinstallation créée par Inno Setup à partir de
-l'`AppId`, commun avec la version officielle. Winget reconnaît donc aussi une
-installation BVN ou Britton existante, et propose de la mettre à jour vers la
-version Britton. La correspondance se fait par ce code, pas par le nom affiché.
+Le `ProductCode` est la clé de désinstallation `<AppId>_is1` créée par Inno Setup ;
+le choix de l'`AppId` est expliqué dans la
+[numérotation des versions](britton-customizations.md#numérotation-des-versions).
+Winget reconnaît ainsi une installation BVN ou Britton existante par ce code, pas par
+le nom affiché, et propose la mise à jour vers la version Britton.
 
-Pour générer un manifeste à la main, depuis la racine du dépôt (le script télécharge
-l'installeur de la release pour en calculer l'empreinte SHA256) :
+## Obtenir le manifeste
+
+- Release `vX.Y.Z-brt.N` : télécharger ses trois fichiers `.yaml` dans un même dossier.
+  Le workflow de release les y a ajoutés, avec l'empreinte de l'installeur compilé.
+- Sinon (release sans manifeste joint), le générer depuis la racine du dépôt. Le script
+  lit l'empreinte SHA256 publiée par GitHub pour l'installeur de la release et ne le
+  télécharge que si GitHub n'en fournit pas :
 
 ```powershell
 .\.github\scripts\new_winget_manifest.ps1 -Tag v1.13.0-brt.1
@@ -47,7 +49,7 @@ Cette étape vérifie l'installation silencieuse et la mise à jour avant de cr�
 
 1. Dans un terminal **administrateur**, autoriser les manifestes locaux (réglage du poste) :
    `winget settings --enable LocalManifestFiles`
-2. Dans un terminal normal, télécharger les trois fichiers `.yaml` de la release dans un même dossier.
+2. Dans un terminal normal, placer les trois fichiers `.yaml` (voir « Obtenir le manifeste ») dans un même dossier.
 3. Fermer Revit, puis installer ou mettre à jour :
    `winget install --manifest <dossier>`
 4. Vérifier l'entrée : `winget list --id Britton.RevitBatchProcessor` et le titre de BatchRvtGUI.
@@ -62,13 +64,10 @@ Cette étape vérifie l'installation silencieuse et la mise à jour avant de cr�
 | Source pré-indexée (`source.msix`) | Index à construire et signer, puis à héberger sur un site web ou un partage | Pas de service à exploiter | Outillage de création peu documenté, certificat de signature reconnu par les postes, index à reconstruire à chaque release |
 | Pas de source | `winget install --manifest` depuis un partage réseau | Aucun service | Manifestes locaux à permettre sur chaque poste, pas de détection automatique des mises à jour |
 
-Une source REST est le choix le plus simple à maintenir pour quelques paquets internes.
-La création des ressources Azure engage des coûts et relève de l'administration Azure
-de Britton.
-
 ## Étape 3 — Créer la source REST
 
-À faire une fois, par une personne disposant des droits sur l'abonnement Azure :
+À faire une fois, par une personne disposant des droits sur l'abonnement Azure. La
+création des ressources engage des coûts et relève de l'administration Azure de Britton.
 
 ```powershell
 Install-Module -Name Microsoft.WinGet.RestSource
@@ -98,7 +97,7 @@ attendu par la stratégie.
 
 1. Publier la release GitHub `vX.Y.Z-brt.N` (non marquée « pre-release ») ; le workflow
    y ajoute l'installeur et les trois fichiers `.yaml`.
-2. Télécharger les trois fichiers `.yaml` dans un dossier, puis :
+2. Placer les trois fichiers `.yaml` de la release dans un dossier (voir « Obtenir le manifeste »), puis :
 
 ```powershell
 winget validate --manifest <dossier>
@@ -114,3 +113,4 @@ les addins dans `%APPDATA%\Autodesk\Revit\Addins`.
 - L'installation est par utilisateur : chaque compte Windows qui utilise Revit Batch Processor l'installe ou la met à jour pour lui-même.
 - Le manifeste a été validé avec `winget validate` sur une empreinte fictive ; l'installation et la mise à jour réelles par winget restent à essayer avec la première release `-brt.1`.
 - Seuls les tags `vX.Y.Z-brt.N` produisent un manifeste ; un tag officiel n'en génère pas.
+- État au 5 octobre 2026 : aucune source Britton n'est encore créée ; les étapes 3 à 5 n'ont pas été exécutées.

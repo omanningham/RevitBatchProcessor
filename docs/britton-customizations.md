@@ -136,10 +136,15 @@ supérieure à la version officielle `X.Y.Z` (équivalente à `X.Y.Z.0`), alors 
 suffixe texte comme `-brt.1` peut être classé avant. L'installeur garde l'`AppId`
 officiel : il remplace une installation BVN existante au lieu de coexister avec elle,
 car les deux installent les mêmes addins. Seuls le nom affiché
-(« Revit Batch Processor (Britton) ») et l'éditeur changent.
+(« Revit Batch Processor (Britton) X.Y.Z-brt.N ») et l'éditeur (« Britton ») changent :
+un inventaire ou une détection (Intune, script) fondé sur l'ancien nom doit passer à
+la clé `{B5CA57EA-7BB2-4620-916C-AE98376C1EF1}_is1`.
 
-[set_version.ps1](../.github/scripts/set_version.ps1) dérive toutes ces valeurs du tag,
-dans le workflow de release et dans la PR de version vers `master`. La distribution
+[release_metadata.ps1](../.github/scripts/release_metadata.ps1) définit ces règles ;
+[set_version.ps1](../.github/scripts/set_version.ps1) les applique au tag dans le
+workflow de release et dans la PR de version vers `master`. Il accepte aussi les tags
+officiels `vX.Y.Z` et `vX.Y.Z-beta` (révision 0) ; seuls les tags `-brt.N` produisent
+un manifeste winget. La distribution
 par une source winget privée est décrite dans [winget.md](winget.md). Les addins
 2024–2027 ont leur propre `AssemblyVersion` (1.0.0) et ne suivent pas ce schéma.
 

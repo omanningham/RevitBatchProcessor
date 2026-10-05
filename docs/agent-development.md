@@ -129,7 +129,8 @@ Ne pas annoncer « tests réussis » sur la seule base d'un `dotnet test` sans t
 
 La CI (`.github/workflows/ci.yml`) exécute `git diff --check`,
 `python .github/scripts/check_repo.py` (scripts inscrits dans `BatchRvtUtil.csproj`,
-liens Markdown, en-têtes GPL des nouveaux fichiers), le build de la solution et
+liens Markdown, en-têtes GPL des nouveaux fichiers), `tests/release_metadata_tests.ps1`
+(versions tirées du tag, identité de l'installeur, manifeste winget), le build de la solution et
 celui des addins 2025–2027. Le script de vérification peut être lancé localement.
 Elle exécute ensuite `EngineProbe` sur chaque sortie 2025–2027 (IronPython 3.4.2 sous
 .NET 10) et `LegacyEngineProbe` sur la sortie GUI (IronPython 2.7) : hôte de scripts

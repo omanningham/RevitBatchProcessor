@@ -50,6 +50,8 @@ jobs:
         with:
           path: Setup/RevitBatchProcessor.iss
 
+      # The installer name is OutputBaseFilename, RevitBatchProcessorSetup_v{#AppDisplayVersion},
+      # i.e. the raw tag: set_version.ps1 writes AppDisplayVersion from it.
       - name: Upload Release Asset
         id: upload-release-asset
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
@@ -58,7 +60,7 @@ jobs:
           fail_on_unmatched_files: true
 
       # winget manifest for the private source (docs/winget.md), hashed from the
-      # installer built above. Britton tags only.
+      # installer built above; URLs use GITHUB_REPOSITORY. Britton tags only.
       - name: Create winget manifest
         id: winget_manifest
         if: contains(github.event.release.tag_name, '-brt.')
@@ -73,8 +75,7 @@ jobs:
           fail_on_unmatched_files: true
 
   # Version bump PR against master: README, installer script and assembly version.
-  # Britton tags are vX.Y.Z-brt.N (see docs/britton-customizations.md); the uploaded
-  # installer name matches OutputBaseFilename only because both use the raw tag.
+  # Britton tags are vX.Y.Z-brt.N (see docs/britton-customizations.md).
   # Requires "Allow GitHub Actions to create and approve pull requests" in the
   # repository Actions settings.
   version-pr:
