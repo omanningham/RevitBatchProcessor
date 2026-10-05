@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -373,7 +372,8 @@ public partial class BatchRvtGuiForm : Form
 
     private void BatchRvtGuiForm_Load(object sender, EventArgs e)
     {
-        Text = GetWindowTitleWithVersion();
+        // ProductVersion is the informational version (Common/GlobalAssemblyInfo.cs), e.g. "1.13.0-brt.1".
+        Text = $"{WINDOW_TITLE} v{ProductVersion}";
 
         TopMost = false;
         alwaysOnTopCheckbox.Checked = TopMost;
@@ -491,15 +491,6 @@ public partial class BatchRvtGuiForm : Form
     {
         DialogResult = DialogResult.Cancel;
         Close();
-    }
-
-    // Informational version from Common/GlobalAssemblyInfo.cs, e.g. "1.13.0-brt.1".
-    private static string GetWindowTitleWithVersion()
-    {
-        var version = typeof(BatchRvtGuiForm).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-
-        return string.IsNullOrWhiteSpace(version) ? WINDOW_TITLE : $"{WINDOW_TITLE} v{version}";
     }
 
     public static void ShowErrorMessageBox(string errorMessage)
