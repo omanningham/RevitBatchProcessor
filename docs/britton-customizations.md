@@ -5,7 +5,8 @@ Processor et les contrôles à effectuer après une mise à jour du dépôt offi
 Il s'adresse aux mainteneurs et aux agents de programmation. Les raisons des choix
 et les options écartées sont consignées dans le [journal des décisions](journal-decisions.md).
 
-État de référence : 30 septembre 2026, commit du fork `2a47aa6`.
+État de référence : 6 octobre 2026, commit du fork `4b4baee`, qui inclut les
+corrections de BRT-02 et BRT-03 décrites ci-dessous.
 L'analyse porte sur le code source ; elle ne certifie pas le comportement dans Revit
 ni la version actuellement installée sur un poste.
 
@@ -27,6 +28,7 @@ Toute nouvelle adaptation doit être faite dans les sources actives.
 - `14f6113` — 28 janvier 2025 : intégration des adaptations Britton dans les quatre sources actives.
 - `fe3eade` — 11 septembre 2025 : fusion du dépôt officiel dans le fork.
 - `2a47aa6` — 30 septembre 2026 : nouvelle fusion du dépôt officiel, au commit `000d4cb`.
+- `7a8ad30`, `2f9280a` — 30 septembre 2026 : corrections de BRT-02 et BRT-03.
 
 La vérification du 30 septembre 2026 a confirmé, fichier par fichier, que le patch
 entre `000d4cb` et `2a47aa6` possède la même empreinte `git patch-id --stable` que
@@ -134,7 +136,7 @@ sans mise à jour officielle. Il n'y a pas de releases beta Britton.
 
 La version comparée par Windows et winget est purement numérique : `X.Y.Z.N` reste
 supérieure à la version officielle `X.Y.Z` (équivalente à `X.Y.Z.0`), alors qu'un
-suffixe texte comme `-brt.1` peut être classé avant. L'installeur garde l'`AppId`
+suffixe texte comme `-brt.1` peut être classé avant. L'installateur garde l'`AppId`
 officiel : il remplace une installation BVN existante au lieu de coexister avec elle,
 car les deux installent les mêmes addins. Seuls le nom affiché
 (« Revit Batch Processor (Britton) X.Y.Z-brt.N ») et l'éditeur (« Britton ») changent :
@@ -204,11 +206,11 @@ conditions de déclenchement, ses effets sur les fichiers et son scénario de va
 Les deux clauses Python 2 `except Exception, e` de la source active
 `revit_script_util.py` deviennent `except Exception as e`. Aucun changement de
 reconnaissance FR/EN, de traitement `TMP`, de repli d’enregistrement ou de fermeture.
-Les archives « Britton modified » restent exclues des imports et du package pilote.
+Les archives « Britton modified » restent exclues des imports et de l'installateur.
 Les scripts actifs sont compilés par les deux moteurs dans les harnais hors Revit.
 Le test des flux a aussi corrigé l’inversion stdout/stderr de leur restauration.
 
 Les scénarios FR/EN, `TMP`, `tmp` et `TMP2` restent à qualifier dans Revit sur
 copies jetables. Ne pas exécuter les branches dont la fermeture n’est pas sûre.
-Le [runbook pilote](net10-pilot.md) précise les commandes, preuves et limites ;
+Le [runbook .NET 10](net10-pilot.md) précise les commandes, preuves et limites ;
 Python 3.4.2 est utilisé pour les tâches Revit 2025–2027, Python 2 pour la supervision.

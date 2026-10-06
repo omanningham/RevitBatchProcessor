@@ -59,13 +59,14 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 ### D-04 — Moteur Python séparé par famille de versions
 
 - **Décision :** IronPython 3.4.2 et sa bibliothèque standard pour les tâches exécutées
-  dans Revit 2025 à 2027. La GUI, la console, le pré et le post-traitement ainsi que
+  dans Revit 2025 à 2027. La GUI, la console, le pré- et le post-traitement ainsi que
   les addins 2015 à 2024 restent en .NET Framework 4.8 avec IronPython 2.7.
 - **Raison :** IronPython 2.7.12 échoue sous .NET 10. Seul le code exécuté dans les
   Revit modernes doit changer de moteur.
 - **Écarté :** préserver Python 2 partout (premier choix, abandonné) ; un paquet
   IronPython 2.7.12 recompilé avec correctif ; tout passer en Python 3.
-- **Traces :** `91935f7`, PR #1 et #4.
+- **Traces :** `91935f7`, PR #1 et #4 ; options écartées : compte rendu de session,
+  non versionné.
 
 ### D-05 — Refuser les lots mixtes
 
@@ -73,7 +74,8 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
   refusé avant le prétraitement, puis vérifié de nouveau après.
 - **Raison :** les deux familles n'utilisent pas le même moteur Python.
 - **Écarté :** un script de tâche unique compatible avec Python 2 et 3.
-- **Traces :** `91935f7`, [net10-pilot.md](net10-pilot.md).
+- **Traces :** `91935f7`, [net10-pilot.md](net10-pilot.md) ; option écartée : compte
+  rendu de session, non versionné.
 
 ### D-06 — Étendre le mécanisme existant plutôt que créer un nouvel hôte
 
@@ -95,7 +97,7 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 ### D-08 — Ne pas convertir automatiquement les scripts métier
 
 - **Décision :** les tâches métier destinées à Revit 2025 à 2027 sont copiées et
-  converties en Python 3 à la main ; le pré et le post-traitement restent en Python 2.
+  converties en Python 3 à la main ; le pré- et le post-traitement restent en Python 2.
 - **Raison :** non documentée au-delà du runbook.
 - **Traces :** [net10-pilot.md](net10-pilot.md).
 
@@ -111,11 +113,13 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 
 - **Décision :** produire l'installateur complet avec le script Inno du dépôt, sans
   configuration spécifique ; le mainteneur fait lui-même les essais dans Revit. Les
-  scripts et l'installateur du déploiement pilote limité à 2025.5 sont supprimés.
+  scripts et l'installateur du déploiement pilote limité à 2025.5, jamais commités,
+  sont abandonnés.
 - **Raison :** « Ne créé pas de configuration spécifique, je veux simplement créé un
   fichier d'installation du plugin complet ».
 - **Écarté :** déploiement pilote 2025.5 avec scripts de déploiement et de restauration.
-- **Traces :** compte rendu de session du 30 septembre 2026.
+- **Traces :** non documentée dans le dépôt (compte rendu de session du
+  30 septembre 2026, non versionné).
 
 ## 30 septembre 2026 — Adaptations Britton corrigées
 
@@ -135,7 +139,8 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 - **Décision :** les chemins locaux d'IronPython 2.7 et de Visual Studio 2022
   (`scripts/ipy64.bat`, `scripts/msbuild.py`) sont commités sur une branche séparée,
   `local-tooling-paths`, hors de la PR principale, puis conservés lors de la fusion
-  dans `master`.
+  dans `master`. C'est une exception assumée à la règle qui garde les fichiers
+  propres à un poste hors des PR.
 - **Réserve :** ce chemin Visual Studio 2022 ne permet pas de compiler les addins
   `net10.0` (voir D-15). Non tranché.
 - **Traces :** `d019e20`, PR #3 et #4.
@@ -150,19 +155,19 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
   CI à ce stade. Aucun chemin de poste, secret, plugin ni modèle d'IA dans les
   instructions partagées, et aucun modèle Revit de production pour valider.
 - **Écarté :** configuration propre à un seul outil ; instructions dupliquées.
-- **Traces :** `3aefba3`.
+- **Traces :** `91935f7` (création du guide), `3aefba3` (points d'entrée).
 
 ### D-14 — Documenter les adaptations dans un registre
 
 - **Décision :** créer [britton-customizations.md](britton-customizations.md) avec les
   identifiants BRT-xx et la procédure à suivre après une mise à jour officielle.
-- **Traces :** registre lui-même.
+- **Traces :** `91935f7` (création du registre).
 
 ### D-15 — Corriger la documentation selon les sources officielles
 
 - **Décision :** après deux revues de la documentation, corriger le README
-  (sécurité des données, usage direct d'un `.dyn` pour Dynamo), compléter
-  [ui.md](ui.md), et exiger Visual Studio 2026 (18.0) avec le SDK .NET 10, d'après
+  (sécurité des données, prérequis Dynamo) et [SampleScripts.md](SampleScripts.md)
+  (usage direct d'un `.dyn`), compléter [ui.md](ui.md), et exiger Visual Studio 2026 (18.0) avec le SDK .NET 10, d'après
   Microsoft Learn.
 - **Raison :** le mainteneur a rappelé que les addins 2025 et 2026 étaient déjà passés
   à .NET 10 ; l'enveloppe Python pour Dynamo échouait en mode Detach.
@@ -175,7 +180,8 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 - **Décision :** les PR et fusions sont faites dans `omanningham/RevitBatchProcessor`,
   jamais vers le dépôt officiel ; `gh` vise le fork par défaut.
 - **Raison :** « je veux mergé les PR dans ma fork Britton ».
-- **Traces :** PR #1 à #9.
+- **Traces :** PR #1 à #9. Le transfert du fork vers l'organisation Britton est
+  décidé en D-34.
 
 ## 2 octobre 2026 — Qualification et sécurité du dépôt
 
@@ -198,26 +204,30 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 ### D-19 — Sécuriser le dépôt GitHub
 
 - **Décision :** activer l'analyse des secrets, la protection des push, les alertes
-  Dependabot et l'approbation des PR externes ; désactiver le wiki ; restreindre les
-  actions autorisées. Le mainteneur fait lui-même les réglages refusés aux agents.
-- **Traces :** compte rendu de session du 2 octobre 2026.
+  Dependabot et l'approbation des workflows pour tous les contributeurs externes ;
+  désactiver le wiki ; restreindre les actions autorisées. Le mainteneur fait
+  lui-même les réglages refusés aux agents.
+- **Raison :** non documentée.
+- **Traces :** réglages du dépôt sur GitHub, sans commit associé ; compte rendu de
+  session du 2 octobre 2026, non versionné.
 
 ## 2 au 5 octobre 2026 — Release et intégration continue
 
 ### D-20 — Workflow de release fiable
 
 - **Décision :** construire le commit tagué (et non `master`), échouer si une source
-  de l'installeur manque, épingler par SHA les actions tierces, jeton en lecture
+  de l'installateur manque, épingler par SHA les actions tierces, jeton en lecture
   seule par défaut, PR de version ouverte par un job séparé, tag exigé en `v`
   minuscule.
 - **Écarté :** groupe de concurrence sur la release, retiré parce que GitHub ne garde
   qu'une exécution en attente par groupe et pourrait laisser une release sans
-  installeur.
+  installateur.
 - **Traces :** `2d1eb01`, `929c8a9`, PR #5.
 
-### D-21 — CI sur chaque PR, rendue obligatoire
+### D-21 — CI sur chaque PR vers `master`, rendue obligatoire
 
-- **Décision :** CI sur chaque PR et sur `master`, sans filtre de chemins ; le ruleset
+- **Décision :** CI sur chaque PR qui vise `master` et sur `master`, sans filtre de
+  chemins ; une PR vers une autre branche n'a pas de CI. Le ruleset
   de `master` exige « Repository checks » et « Solution build (as release) », et
   CodeQL bloque à partir de la sévérité élevée. Aucune approbation obligatoire tant
   qu'il n'y a qu'un mainteneur.
@@ -243,9 +253,13 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 
 - **Décision :** exécuter EngineProbe (IronPython 3.4.2 sous .NET 10) sur chaque
   sortie 2025 à 2027, et LegacyEngineProbe (IronPython 2.7) sur la sortie GUI. Chaque
-  sortie est testée telle que l'installeur la livre.
-- **Raison :** IronPython 3.4.2 ne vise officiellement pas .NET 10.
-- **Écarté :** le témoin négatif IronPython 2.7.12 en CI, jugé peu utile ; il reste local.
+  sortie est testée telle que l'installateur la livre. LegacyEngineProbe compile
+  aussi tous les scripts sous IronPython 2.7.
+- **Raison :** le paquet NuGet IronPython 3.4.2 cible .NET Framework 4.6.2,
+  .NET Standard 2.0, `net6.0` et `net8.0`, mais pas `net10.0` : son fonctionnement
+  sous .NET 10 doit être vérifié.
+- **Écarté :** le témoin négatif IronPython 2.7.12 en CI, parce qu'il exige un
+  dossier de contrôle local (`-ControlEngineFolder`) ; il reste local.
 - **Traces :** `1a13488`, `0a31a74`, PR #6.
 
 ### D-25 — Numérotation des versions Britton
@@ -260,7 +274,7 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 
 ### D-26 — Remplacer l'installation BVN plutôt que coexister
 
-- **Décision :** l'installeur garde l'`AppId` officiel, avec le nom « Revit Batch
+- **Décision :** l'installateur garde l'`AppId` officiel, avec le nom « Revit Batch
   Processor (Britton) » et l'éditeur « Britton ».
 - **Raison :** les deux installent les mêmes addins ; deux installations simultanées
   entreraient en conflit.
@@ -272,7 +286,8 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 
 - **Décision :** manifeste `Britton.RevitBatchProcessor` généré à chaque release,
   portée utilisateur, schéma 1.10.0, langue fr-CA. Sa génération est facultative et
-  ne bloque pas la release. Le manifeste lit le script Inno tel qu'il était au tag.
+  ne bloque pas la release. En génération manuelle sans `-InstallerPath`, le
+  manifeste lit le script Inno tel qu'il était au tag.
   Source recommandée : source REST sur Azure.
 - **Raison :** distribution aux utilisateurs Britton avec mise à jour automatique ;
   le schéma 1.10.0 est le plus récent accepté par la source REST officielle.
@@ -290,12 +305,12 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 
 - **Décision :** retirer le plan d'implantation de session commité pendant la PR #7.
 - **Raison :** le guide interdit toute dépendance à un plugin ou à un modèle d'IA dans
-  les documents partagés.
+  les instructions communes.
 - **Traces :** `09895fd`, `1ff52b7`.
 
 ### D-30 — Première release Britton
 
-- **Décision :** publier `v1.13.0-brt.1` comme release définitive, avec l'installeur
+- **Décision :** publier `v1.13.0-brt.1` comme release définitive, avec l'installateur
   et les trois fichiers du manifeste winget. Publiée par le mainteneur lui-même.
 - **Traces :** release GitHub `v1.13.0-brt.1`, 5 octobre 2026.
 
@@ -306,7 +321,7 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
 - **Décision :** les liens de release, d'issues et de contribution du README pointent
   vers le fork ; un avis en tête indique que le fork est maintenu par Britton, sans
   soutien de BVN ni de l'auteur original, avec un tableau des différences.
-- **Traces :** `9bca6fa`, `ae5d2c7`, PR #9.
+- **Traces :** `9bca6fa` (PR #5), `ae5d2c7` (PR #9).
 
 ### D-32 — Langues de la documentation
 
@@ -342,55 +357,50 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
   appartenir à l'entreprise. La visibilité publique n'était pas le motif principal.
 - **Écarté :** rendre le dépôt privé. D'après la documentation GitHub, un fork ne
   peut pas changer seul de visibilité ; il faudrait d'abord le détacher du réseau
-  de forks (*Leave fork network*, irréversible), ce qui perd PR, issues et releases.
-  Un dépôt privé au plan gratuit perdrait aussi l'application des rulesets et de la
-  protection de branche, et CodeQL ; les installateurs publiés en release ne
-  seraient plus téléchargeables sans authentification. Écarté aussi : copie miroir
-  dans un nouveau dépôt, mêmes pertes.
+  de forks (*Leave fork network*, irréversible), ce qui perd issues, PR, wiki et
+  autres métadonnées. Avec le plan GitHub Free de l'organisation, un dépôt privé
+  perdrait aussi la protection de branche, les rulesets et le code scanning
+  (CodeQL) ; les installateurs publiés en release ne seraient plus téléchargeables
+  sans authentification. Écarté aussi : copie miroir dans un nouveau dépôt, mêmes
+  pertes.
 - **Effets attendus :** PR, issues, releases, tags, lien de fork, ruleset `master`
   et protection de branche suivent le dépôt ; les anciennes URL web et Git sont
-  redirigées.
+  redirigées, tant qu'aucun dépôt du même nom n'est recréé à l'ancien emplacement.
 - **Après le transfert :**
-  - mettre à jour `origin` dans chaque clone (`git remote set-url`) ;
+  - ne jamais recréer un dépôt ni un fork du même nom dans le compte personnel :
+    la redirection cesserait et les liens des releases existantes (README,
+    manifestes winget) renverraient une erreur 404 ;
+  - mettre à jour `origin` dans chaque clone (`git remote set-url`) et le dépôt par
+    défaut de `gh` (`gh repo set-default`) ;
   - remplacer l'ancien chemin `owner/repo` dans `.github/ISSUE_TEMPLATE/config.yml`,
     `.github/SECURITY.md`, `.github/pull_request_template.md`, `README.md`,
     `README.fr.md`, `.github/scripts/new_winget_manifest.ps1` et
     `tests/release_metadata_tests.ps1` ;
+  - décider si `.github/CODEOWNERS` désigne toujours le compte du mainteneur ou
+    une équipe de l'organisation ;
   - vérifier que les réglages Actions propres au dépôt sont conservés : actions
     autorisées limitées à une liste, `GITHUB_TOKEN` en lecture par défaut,
     approbation des workflows pour tous les contributeurs externes ;
   - vérifier que le workflow planifié `upstream-watch.yml` reste activé ;
-  - recréer les nouvelles releases sous la nouvelle URL ; les manifestes winget
+  - publier les releases suivantes sous la nouvelle URL ; les manifestes winget
     existants restent valides grâce à la redirection.
 - **Sources :** documentation GitHub *Transferring a repository*, *About permissions
-  and visibility of forks*, *Detaching a fork*, *Setting repository visibility*.
+  and visibility of forks*, *Detaching a fork*, *Setting repository visibility*,
+  *About protected branches*, *About rulesets*, *About code scanning*.
 
 ## Règles de travail du mainteneur
 
-Règles exprimées à plusieurs reprises, appliquées à toute modification du fork :
-
-- Analyser et planifier avant d'implanter ; ne poser que les questions qui changent
-  la solution.
-- Vérifier les choix techniques auprès des sources officielles (Autodesk, Microsoft
-  Learn, projets en amont) avant d'agir.
-- Distinguer les faits vérifiés, les hypothèses et les validations qui restent à faire.
-- Préserver les changements locaux ; garder les fichiers propres à un poste hors des PR.
-- Aucun déploiement implicite, aucun modèle Revit de production, aucune synchronisation
-  vers un central. Les essais dans Revit et en production sont faits par le mainteneur.
-- Les actions sensibles (publication d'une release, lancement manuel d'un workflow,
-  réglages du dépôt) sont faites par le mainteneur lui-même.
-- Préférer la solution la plus simple : installateur standard, aucune configuration
-  spécifique.
-- Revue de code avant chaque fusion, puis plan de correction des constats retenus.
-- Git : travail en worktree, PR en brouillon d'abord, merge commit, avance rapide
-  seulement pour la mise à jour locale, nettoyage des branches et worktrees après fusion.
+Les règles de travail exprimées par le mainteneur au fil de ces décisions sont
+regroupées dans le [guide de développement](agent-development.md#collaboration-et-livraison),
+seule source lue par les agents.
 
 ## Questions ouvertes
 
 1. **Essais Revit des adaptations Britton :** dialogues français (BRT-01, BRT-02) et
    fermeture du document temporaire `TMP` (BRT-03) restent vérifiés hors Revit seulement.
-2. **Couverture de la qualification .NET 10 :** Dynamo, infonuagique et coexistence
-   avec pyRevit non qualifiés ; builds Revit exacts du 2 octobre 2026 non consignés.
+2. **Couverture de la qualification .NET 10 :** Dynamo et infonuagique non qualifiés ;
+   coexistence avec pyRevit non consignée ; builds Revit exacts du 2 octobre 2026
+   non consignés.
 3. **Migration des tâches métier en Python 3** pour Revit 2025 à 2027 : non faite.
 4. **winget :** source REST Azure non créée, budget et mode d'authentification
    (clé ou Entra ID) à décider ; installation réelle par winget non essayée.
@@ -398,16 +408,11 @@ Règles exprimées à plusieurs reprises, appliquées à toute modification du f
    (voir D-26) : aucune trace que ce soit fait.
 6. **Chemin Visual Studio 2022** de `scripts/msbuild.py` (D-12), incompatible avec
    les addins `net10.0` (D-15) : à trancher.
-7. **Épinglage des actions `actions/*`** : laissées en version majeure, contrairement
-   aux actions tierces ; choix non documenté.
-8. **Témoin négatif IronPython 2.7.12** et contrôle syntaxique IronPython 2.7 en CI :
-   non retenus pour l'instant.
-9. **Branches distantes anciennes** (`net10-ironpython3-agent-docs`, `v1.9.1-beta`) :
-   à supprimer ou non.
-10. **Registre des adaptations :** son « état de référence » date du commit `2a47aa6`,
-    antérieur aux corrections de BRT-02 et BRT-03, et il mentionne encore un « package
-    pilote ».
-11. **Capture d'écran annotée** pour [ui.md](ui.md) : à produire.
+7. **Épinglage des actions publiées par GitHub** (`actions/*`, `github/codeql-action`) :
+   laissées en version majeure, contrairement aux actions tierces ; choix non documenté.
+8. **Branches distantes anciennes** (`v1.9.1-beta`, `github-actions/update-readme`
+   issue de la PR #8 fermée) : à supprimer ou non.
+9. **Capture d'écran annotée** pour [ui.md](ui.md) : à produire.
 
 ## Tenir ce journal à jour
 
