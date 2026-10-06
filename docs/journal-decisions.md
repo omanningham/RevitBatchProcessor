@@ -6,7 +6,7 @@ en trouver la trace. Il complète le [registre des adaptations Britton](britton-
 qui décrit l'état du code, et le [guide de développement](agent-development.md),
 qui fixe les règles de travail.
 
-État au 5 octobre 2026, `master` au commit `4b4baee`. Sources : historique Git,
+État au 6 octobre 2026, `master` au commit `4b4baee`. Sources : historique Git,
 pull requests du fork, documents du dépôt et comptes rendus des sessions de travail
 menées avec des agents de programmation. Une justification absente des sources est
 indiquée « non documentée » plutôt que reconstituée.
