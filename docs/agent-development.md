@@ -164,6 +164,17 @@ Si l'environnement manque, indiquer précisément ce qui a été vérifié et ce
 - Dans le compte rendu, indiquer les fichiers modifiés, la raison, les validations exécutées et les limitations restantes.
 - Mettre à jour ce guide lorsque les commandes, projets, runtimes ou tests changent ; garder les trois points d'entrée courts et cohérents.
 
+Règles du mainteneur, dont l'historique est dans le [journal des décisions](journal-decisions.md) :
+
+- Analyser et planifier avant d'implanter ; ne poser que les questions qui changent la solution.
+- Vérifier les choix techniques auprès des sources officielles (Autodesk, Microsoft Learn, projets en amont) avant d'agir ; distinguer faits vérifiés, hypothèses et validations restantes.
+- Préférer la solution la plus simple, par exemple un installateur standard sans configuration spécifique.
+- Garder les fichiers propres à un poste hors des PR, sauf exception consignée dans le journal (D-12).
+- Les essais dans Revit et en production, la publication d'une release, le lancement manuel d'un workflow et les réglages du dépôt sont faits par le mainteneur lui-même.
+- Faire une revue de code avant chaque fusion, puis un plan de correction des constats retenus.
+- Git : travailler dans un worktree, ouvrir la PR en brouillon, fusionner par merge commit (avance rapide seulement pour mettre à jour la copie locale), puis supprimer la branche et le worktree.
+- Consigner tout nouveau choix délibéré dans le journal des décisions (entrée `D-NN`).
+
 ## Langues de la documentation
 
 Le fork limite ses écarts avec le dépôt officiel pour faciliter les fusions :
@@ -171,7 +182,7 @@ Le fork limite ses écarts avec le dépôt officiel pour faciliter les fusions :
 | Fichiers | Langue |
 | --- | --- |
 | Fichiers issus du dépôt officiel (`README.md`, `docs/SampleScripts.md`, `docs/ui.md`, code, commentaires, interface) | Anglais ; modifications Britton minimales et regroupées. |
-| Documents créés par Britton (ce guide, `britton-customizations.md`, `winget.md`, `net10-pilot.md`) | Français. |
+| Documents créés par Britton (ce guide, `britton-customizations.md`, `journal-decisions.md`, `winget.md`, `net10-pilot.md`) | Français. |
 | Traductions de fichiers officiels | Fichier voisin `*.fr.md`, par exemple `README.fr.md`. |
 
 Toute modification de `README.md` doit être reportée dans `README.fr.md`.
@@ -214,6 +225,7 @@ les colonnes associées et empêche la relecture après prétraitement.
 - [Documentation UI](ui.md)
 - [Workflow de release](../.github/workflows/build_msi.yml)
 - [Distribution Britton par winget](winget.md)
+- [Journal des décisions du fork](journal-decisions.md) : y consigner tout nouveau choix délibéré
 - [CI des PR](../.github/workflows/ci.yml)
 - [Instructions Codex et agents compatibles](../AGENTS.md)
 - [Instructions Claude Code](../CLAUDE.md)
