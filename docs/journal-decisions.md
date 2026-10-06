@@ -330,6 +330,41 @@ même après mise à jour. IronPython 2.7.12 est incompatible avec .NET 10.
   déjà les liens vers `v1.13.0-brt.1`.
 - **Traces :** PR #8 et #9.
 
+## 6 octobre 2026 — Emplacement du dépôt
+
+### D-34 — Transférer le fork vers l'organisation Britton, en restant public
+
+- **Date :** 6 octobre 2026. Décision prise, transfert pas encore effectué.
+- **Décision :** transférer le dépôt du compte personnel du mainteneur vers
+  l'organisation GitHub Britton, avec la fonction *Transfer ownership*. Le dépôt
+  reste public et reste un fork de `bvn-architecture/RevitBatchProcessor`.
+- **Raison :** le dépôt avait été créé par erreur dans un compte personnel ; il doit
+  appartenir à l'entreprise. La visibilité publique n'était pas le motif principal.
+- **Écarté :** rendre le dépôt privé. D'après la documentation GitHub, un fork ne
+  peut pas changer seul de visibilité ; il faudrait d'abord le détacher du réseau
+  de forks (*Leave fork network*, irréversible), ce qui perd PR, issues et releases.
+  Un dépôt privé au plan gratuit perdrait aussi l'application des rulesets et de la
+  protection de branche, et CodeQL ; les installateurs publiés en release ne
+  seraient plus téléchargeables sans authentification. Écarté aussi : copie miroir
+  dans un nouveau dépôt, mêmes pertes.
+- **Effets attendus :** PR, issues, releases, tags, lien de fork, ruleset `master`
+  et protection de branche suivent le dépôt ; les anciennes URL web et Git sont
+  redirigées.
+- **Après le transfert :**
+  - mettre à jour `origin` dans chaque clone (`git remote set-url`) ;
+  - remplacer l'ancien chemin `owner/repo` dans `.github/ISSUE_TEMPLATE/config.yml`,
+    `.github/SECURITY.md`, `.github/pull_request_template.md`, `README.md`,
+    `README.fr.md`, `.github/scripts/new_winget_manifest.ps1` et
+    `tests/release_metadata_tests.ps1` ;
+  - vérifier que les réglages Actions propres au dépôt sont conservés : actions
+    autorisées limitées à une liste, `GITHUB_TOKEN` en lecture par défaut,
+    approbation des workflows pour tous les contributeurs externes ;
+  - vérifier que le workflow planifié `upstream-watch.yml` reste activé ;
+  - recréer les nouvelles releases sous la nouvelle URL ; les manifestes winget
+    existants restent valides grâce à la redirection.
+- **Sources :** documentation GitHub *Transferring a repository*, *About permissions
+  and visibility of forks*, *Detaching a fork*, *Setting repository visibility*.
+
 ## Règles de travail du mainteneur
 
 Règles exprimées à plusieurs reprises, appliquées à toute modification du fork :
